@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Continue with Google</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0A0A0A] text-white min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-md w-full text-center">
+        <a href="index.html" class="inline-flex items-center gap-3 mb-12">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-3xl flex items-center justify-center text-4xl font-black">A</div>
+            <span class="text-4xl font-bold">AdSLiveTv</span>
+        </a>
+
+        <div class="glass rounded-3xl p-12">
+            <h1 class="text-3xl font-bold mb-8">Continue with Google</h1>
+            
+            <a href="#" onclick="signInWithGoogle()" 
+               class="block w-full py-5 bg-white text-black rounded-2xl font-medium text-lg flex items-center justify-center gap-4 hover:bg-gray-100">
+                <i class="fa-brands fa-google text-2xl"></i>
+                Sign in with Google
+            </a>
+
+            <p class="text-gray-400 mt-8">
+                Don't have an account? 
+                <a href="register.html" class="text-blue-400 hover:underline">Create one</a>
+            </p>
+        </div>
+
+        <a href="login.html" class="block mt-8 text-gray-400 hover:text-white">← Back to Email Login</a>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        async function signInWithGoogle() {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/profile.html' }
+            });
+            if (error) alert(error.message);
+        }
+    </script>
+</body>
+</html>
