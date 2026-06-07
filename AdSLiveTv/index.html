@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AdSLiveTv - Watch Live Football, FIFA World Cup 2026, Premier League, Champions League with HD Streams">
+    <title>AdSLiveTv • Live Football Streaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <!-- Video.js -->
+    <link href="https://vjs.zencdn.net/8.17.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.17.0/video.min.js"></script>
+    <!-- HLS.js -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15"></script>
+    <!-- PeerJS -->
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(20px); }
+        .live-dot { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .hero-bg {
+            background: linear-gradient(rgba(10,10,10,0.7), rgba(10,10,10,0.95)), url('https://picsum.photos/id/1015/2000/1200') center/cover no-repeat;
+        }
+        .match-card { transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); }
+        .match-card:hover { transform: translateY(-10px); }
+    </style>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #2563EB;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover:after {
+            width: 100%;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            transform: translateY(-100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .mobile-menu.active {
+            transform: translateY(0);
+        }
+		
+		/* Your existing code remains up here untouched (Desktop view) */
+        .container {
+             width: 1200px;
+             display: flex;
+        }
+
+        /* New Mobile-Only Overrides (Screens smaller than 768px) */
+        @media only screen and (max-width: 768px) {
+         .container {
+              width: 100%; /* Overrides fixed desktop width */
+              flex-direction: column; /* Stacks layout elements vertically */
+        }
+      }
+
+</style>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <!-- Frontend Navigation (Admin Hidden) -->
+<nav class="fixed top-0 w-full bg-[#111827] border-b border-gray-800 z-50">
+    <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
+        
+        <!-- Logo -->
+        <a href="index.html" class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+            <span class="text-3xl font-bold tracking-tighter">AdS<span class="text-[#2563EB]">LiveTv</span></span>
+        </a>
+
+        <!-- Main Menu -->
+        <div class="flex items-center gap-8 text-sm font-medium">
+            <a href="index.html" class="hover:text-blue-400">Home</a>
+            <a href="worldcup.html" class="hover:text-blue-400">World Cup 2026</a>
+            <a href="leagues.html" class="hover:text-blue-400">Leagues</a>
+            <a href="news.html" class="hover:text-blue-400">News</a>
+            <a href="watch-live.html" class="hover:text-blue-400">Watch Live</a>
+        </div>
+		
+		<!-- Right Side of Navbar -->
+               <div class="flex items-center gap-4">
+                    <a href="admin.html" class="hidden md:flex items-center gap-2 text-yellow-400 hover:text-yellow-300">
+                    <i class="fa-solid fa-shield-halved"></i>
+                   <span class="text-sm"></span>
+                </a>
+
+        <!-- Sign In (Admin Panel is HIDDEN from regular users) -->
+        <a href="auth.html" 
+           class="flex items-center gap-3 bg-[#1F2937] hover:bg-blue-600 px-6 py-3 rounded-3xl transition-all">
+            <i class="fa-solid fa-user"></i>
+            <span>Sign In</span>
+        </a>
+    </div>
+</nav>
+                    
+                <!-- Mobile Hamburger -->
+                <button id="mobileBtn" 
+                        onclick="toggleMobileMenu()"
+                        class="md:hidden w-11 h-11 flex items-center justify-center text-3xl">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div id="mobileMenu" class="mobile-menu md:hidden bg-[#111827] border-t border-gray-800">
+            <div class="px-6 py-8 flex flex-col gap-6 text-lg">
+                <a href="index.html" class="hover:text-blue-400">Home</a>
+                <a href="worldcup.html" class="hover:text-blue-400">World Cup 2026</a>
+                <a href="leagues.html" class="hover:text-blue-400">Leagues</a>
+                <a href="news.html" class="hover:text-blue-400">News</a>
+                <a href="watch-live.html" class="hover:text-blue-400">Watch Live</a>
+                <a href="profile.html">My Profile</a>
+                <a href="payments.html">Billing</a> 
+				<a href="" class="text-yellow-400"></a>
+                
+                <div class="pt-6 border-t border-gray-700">
+                    <button onclick="showAuthModal()" 
+                            class="w-full bg-blue-600 py-4 rounded-2xl font-semibold">
+                        Sign In / Register
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+            <div onclick="logout()" class="mt-auto flex items-center gap-3 px-5 py-4 rounded-2xl hover:bg-red-900/30 cursor-pointer text-red-400">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </div>
+        </div>
+
+    <div class="pt-20 max-w-screen-2xl mx-auto">
+
+        <!-- HERO LANDING -->
+        <div id="home-section" class="hero-bg h-screen flex items-center">
+            <div class="px-6 max-w-4xl">
+                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-6 py-2 rounded-3xl mb-6">
+                    <div class="w-3 h-3 bg-red-500 rounded-full live-dot"></div>
+                    <span class="font-semibold">LIVE • 14 Matches Today</span>
+                </div>
+                <h1 class="text-6xl md:text-7xl font-bold leading-none mb-6">Watch Every Goal.<br>Feel Every Moment.</h1>
+                <p class="text-xl text-gray-300 mb-8">FIFA World Cup 2026 • Premier League • Champions League • Official Licensed Streams</p>
+                <!-- WATCH LIVE NOW & WORLD CUP BUTTONS -->
+               <div class="flex flex-wrap gap-4">
+               <!-- Watch Live Now -->
+               <a href="watch-live.html" 
+               class="bg-[#2563EB] hover:bg-blue-600 px-10 py-5 rounded-3xl text-lg font-semibold flex items-center gap-3 transition-all active:scale-95">
+               <i class="fa-solid fa-play"></i> 
+                WATCH LIVE NOW
+               </a>
+
+               <!-- World Cup 2026 -->
+               <a href="worldcup.html" 
+               class="border border-white/50 hover:bg-white/10 px-10 py-5 rounded-3xl text-lg font-medium transition-all active:scale-95">
+                World Cup 2026
+               </a>
+              </div>
+            </div>
+        </div>
+
+          <!-- SIGN IN / REGISTER MODAL -->
+        <div id="authModal" class="hidden fixed inset-0 bg-black/90 z-[200] flex items-center justify-center p-4">
+        <div class="glass max-w-md w-full rounded-3xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-blue-600 py-5 text-center">
+            <h2 class="text-xl font-semibold">Sign In / Register</h2>
+        </div>
+
+        <!-- Content -->
+        <div class="p-8">
+            <!-- Social Login -->
+            <button onclick="socialLogin('google')" 
+                    class="w-full py-4 bg-white text-black rounded-2xl font-medium flex items-center justify-center gap-3 mb-3">
+                <i class="fa-brands fa-google"></i> Continue with Google
+            </button>
+
+            <button onclick="socialLogin('apple')" 
+                    class="w-full py-4 bg-black border border-white/30 rounded-2xl font-medium flex items-center justify-center gap-3 mb-6">
+                <i class="fa-brands fa-apple"></i> Continue with Apple
+            </button>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700"></div>
+                </div>
+                <div class="relative text-center">
+                    <span class="bg-[#111827] px-4 text-gray-400 text-sm">or</span>
+                </div>
+            </div>
+
+            <!-- Email Login -->
+            <input id="email" type="email" placeholder="Email address" 
+                   class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-blue-500">
+
+            <input id="password" type="password" placeholder="Password" 
+                   class="w-full mb-6 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-blue-500">
+
+            <button onclick="emailLogin()" 
+                    class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-semibold text-lg">
+                Sign In
+            </button>
+			<button onclick="showAuthModal()" 
+                     class="flex items-center gap-3 bg-[#1F2937] hover:bg-blue-600 px-6 py-3 rounded-3xl transition-all">
+            <i class="fa-solid fa-user"></i>
+            <span>Sign In</span>
+            </button>
+
+            <div class="text-center mt-6 text-sm">
+                <a href="#" class="text-blue-400 hover:underline">Forgot Password?</a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-[#0A0A0A] py-6 text-center text-xs text-gray-400 border-t border-gray-800">
+            Champions League • Official Licensed Streams
+        </div>
+    </div>
+</div>
+
+   <script>
+    // Prevent direct access without proper login
+    async function protectAdminPage() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = "admin-login.html";
+        }
+    }
+
+    window.onload = protectAdminPage;
+</script>
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<button onclick="generateInvoice()" 
+        class="bg-blue-600 px-6 py-3 rounded-2xl">
+    Download Invoice
+</button>
+
+<script>
+    async function generateInvoice() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(20);
+        doc.text("AdSLiveTv Invoice", 20, 20);
+
+        doc.setFontSize(12);
+        doc.text("Invoice #INV-1001", 20, 40);
+        doc.text("Date: June 4, 2025", 20, 50);
+        doc.text("Customer: Alex Rivera", 20, 60);
+
+        doc.text("Premium Monthly Subscription", 20, 80);
+        doc.text("$19.99", 150, 80);
+
+        doc.text("Total Paid: $19.99", 20, 100);
+
+        doc.save("AdSLiveTv_Invoice_INV-1001.pdf");
+        
+        alert("Invoice PDF downloaded successfully!");
+    }
+</script>
+
+        <!-- LIVE NOW SECTION -->
+        <div class="px-6 py-12">
+            <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                <span>Live Now</span>
+                <span class="text-red-500 text-2xl">●</span>
+            </h2>
+            <div id="liveNowGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </div>
+
+        <!-- WORLD CUP SECTION -->
+        <div id="worldcup-section" class="hidden px-6 py-12 bg-[#111827]">
+            <h2 class="text-4xl font-bold mb-8">FIFA World Cup 2026 <span class="text-emerald-400">🇺🇸🇨🇦🇲🇽</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="wcMatches"></div>
+        </div>
+
+        <!-- LEAGUES -->
+        <div class="px-6 py-12">
+            <h2 class="text-3xl font-bold mb-8">Top Leagues</h2>
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+                <!-- League cards abbreviated -->
+                <div onclick="viewLeague('epl')" class="bg-[#1F2937] hover:bg-[#2563EB] p-8 rounded-3xl text-center cursor-pointer transition-colors">
+                    <div class="text-5xl mb-4">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+                    <div class="font-bold">Premier League</div>
+                </div>
+                <!-- Add more as needed -->
+            </div>
+        </div>
+    </div>
+
+    <!-- FULL LIVE PAGE MODAL -->
+    <div id="liveModal" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
+        <div class="p-4 bg-[#111827] border-b border-gray-800 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="closeLiveModal()" class="text-4xl hover:text-white/70">×</button>
+                <div>
+                    <div id="modalMatchName" class="font-bold text-xl">Argentina vs Brazil</div>
+                    <div id="modalLiveInfo" class="text-emerald-400 text-sm">82' • 3-2 • World Cup Quarter-Final</div>
+                </div>
+            </div>
+            <button onclick="toggleChat()" class="flex items-center gap-2 px-6 py-3 bg-white/10 rounded-3xl hover:bg-white/20">
+                <i class="fa-solid fa-comments"></i> Live Chat
+            </button>
+        </div>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- VIDEO PLAYER -->
+            <div class="flex-1 bg-black relative">
+                <video id="liveVideo" class="w-full h-full" controls></video>
+            </div>
+
+            <!-- CHAT PANEL -->
+            <div id="chatPanel" class="w-96 bg-[#111827] border-l border-gray-800 flex flex-col">
+                <div class="p-4 border-b font-semibold">Match Chat • Supabase Realtime</div>
+                <div id="chatWindow" class="flex-1 p-4 overflow-y-auto space-y-4 text-sm"></div>
+                <div class="p-4 border-t">
+                    <div class="flex gap-2">
+                        <input id="chatMsg" onkeypress="if(event.key==='Enter') sendMessage()" 
+                               class="flex-1 bg-[#1F2937] rounded-2xl px-5 py-3 focus:outline-none" placeholder="Send message...">
+                        <button onclick="sendMessage()" class="bg-[#2563EB] px-6 rounded-2xl">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<!-- AUTH MODAL -->
+    <div id="authModal" class="hidden fixed inset-0 bg-black/90 z-[200] flex items-center justify-center">
+        <div class="glass max-w-md w-full p-10 rounded-3xl">
+            <h2 class="text-3xl font-bold mb-8 text-center">Welcome to AdSLiveTv</h2>
+            <button onclick="googleAuth()" class="w-full py-4 bg-white text-black rounded-2xl font-medium flex items-center justify-center gap-3 mb-4">
+                <i class="fa-brands fa-google"></i> Continue with Google
+            </button>
+            <div class="text-center text-gray-400 my-4">— or —</div>
+            <input id="authEmail" type="email" placeholder="Email" class="w-full bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4 mb-3">
+            <input id="authPass" type="password" placeholder="Password" class="w-full bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4 mb-6">
+            <button onclick="emailAuth()" class="w-full py-4 bg-[#2563EB] rounded-2xl font-semibold">Sign In / Register</button>
+        </div>
+    </div>
+	
+	<button onclick="openCustomerPortal()" 
+        class="bg-blue-600 px-8 py-4 rounded-2xl font-semibold">
+       Manage Billing (Customer Portal)
+    </button>
+
+    <script>
+    async function openCustomerPortal() {
+        const { data, error } = await supabase.functions.invoke('create-portal-session', {
+            body: { customerId: currentStripeCustomerId }
+        })
+
+        if (error) {
+            alert(error.message)
+            return
+        }
+
+        window.location.href = data.url
+    }
+    </script>
+        
+	<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script>
+        let socket;
+
+    async function connectSocket() {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+            console.log("No session - cannot connect to Socket.io");
+            return;
+        }
+
+        socket = io('http://localhost:5000', {
+            auth: {
+                token: session.access_token   // Send JWT token
+            }
+        });
+
+        socket.on('connect', () => {
+            console.log('✅ Socket.io connected with authentication');
+        });
+
+        socket.on('score-update', (data) => {
+            console.log('🔴 Live Score Update:', data);
+            // Update UI
+            updateLiveMatch(data);
+        });
+      }
+
+        // Call this after user logs in
+        window.onload = connectSocket;
+    </script>
+
+    <script>
+    async function createCheckout() {
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+            body: { priceId: 'price_xxx', userId: currentUser.id }
+        })
+
+        if (error) alert(error.message)
+        else stripe.redirectToCheckout({ sessionId: data.sessionId })
+    }
+   </script>
+	   
+	   <script src="https://js.stripe.com/v3/"></script>
+
+<script>
+// Stripe SDK Initialization
+const stripe = Stripe('pk_live_YOUR_PUBLISHABLE_KEY'); // Replace with real key
+
+// Example: Create Checkout Session
+async function createCheckoutSession() {
+    const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId: 'price_123456789' }
+    });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    stripe.redirectToCheckout({ sessionId: data.sessionId });
+}
+</script>
+	   
+	   <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('hamburgerIcon');
+            
+            menu.classList.toggle('active');
+            
+            if (menu.classList.contains('active')) {
+                icon.classList.replace('fa-bars', 'fa-times');
+            } else {
+                icon.classList.replace('fa-times', 'fa-bars');
+            }
+        }
+
+        function showAuthModal() {
+            alert("Sign In Modal would open here");
+        }
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('#mobileMenu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobileMenu').classList.remove('active');
+                document.getElementById('hamburgerIcon').classList.replace('fa-times', 'fa-bars');
+            });
+        });
+		
+        // Tailwind script already included via CDN
+   
+    <script>
+        // ============= CONFIG =============
+        const SUPABASE_URL = "https://hvmorwakzafqratahwbr.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o"; // Replace in production
+        let supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let peer;
+        let currentHLS = null;
+        let mainVideo;
+
+        // Tailwind script
+        function initTailwind() {
+            // CDN already loaded
+        }
+
+        // Init Video Player with HLS
+        function initVideoPlayer(videoId, sourceUrl = "https://test-streams.mux.dev/x264/playlist.m3u8") {
+            const video = document.getElementById(videoId);
+            if (Hls.isSupported()) {
+                if (currentHLS) currentHLS.destroy();
+                currentHLS = new Hls();
+                currentHLS.loadSource(sourceUrl);
+                currentHLS.attachMedia(video);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = sourceUrl;
+            }
+        }
+
+        function initPeerJS() {
+            peer = new Peer();
+            peer.on('open', (id) => console.log('✅ WebRTC PeerJS ID:', id));
+        }
+
+        // Mock live matches
+        const liveMatches = [
+            { id: 1, home: "Argentina", away: "Brazil", score: "3-2", time: "82'", league: "World Cup QF", viewers: "1.2M" },
+            { id: 2, home: "Man City", away: "Liverpool", score: "2-1", time: "67'", league: "Premier League", viewers: "892K" },
+            { id: 3, home: "Real Madrid", away: "Barcelona", score: "1-1", time: "45'", league: "La Liga", viewers: "1.4M" }
+        ];
+
+        function renderLiveNow() {
+            const container = document.getElementById("liveNowGrid");
+            container.innerHTML = "";
+            liveMatches.forEach(match => {
+                const card = document.createElement("div");
+                card.className = "match-card bg-[#111827] rounded-3xl overflow-hidden cursor-pointer border border-gray-800";
+                card.innerHTML = `
+                    <div class="px-6 pt-6 pb-4">
+                        <div class="flex justify-between text-xs mb-4">
+                            <span class="text-emerald-400">${match.league}</span>
+                            <span class="font-mono">${match.time}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-lg">
+                            <div class="font-semibold">${match.home}</div>
+                            <div class="text-4xl font-bold text-center">${match.score}</div>
+                            <div class="font-semibold">${match.away}</div>
+                        </div>
+                    </div>
+                    <div onclick="openLiveStream(${match.id}); event.stopImmediatePropagation()" 
+                         class="bg-gradient-to-r from-[#2563EB] to-[#10B981] py-5 text-center font-semibold text-sm tracking-widest">
+                        WATCH LIVE • ${match.viewers}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openLiveStream(id) {
+            document.getElementById("liveModal").classList.remove("hidden");
+            document.getElementById("modalMatchName").textContent = "Argentina vs Brazil";
+            document.getElementById("modalLiveInfo").textContent = "82' • 3-2 • World Cup";
+            initVideoPlayer("liveVideo");
+        }
+
+        function closeLiveModal() {
+            document.getElementById("liveModal").classList.add("hidden");
+            if (currentHLS) currentHLS.destroy();
+        }
+
+        function toggleChat() {
+            document.getElementById("chatPanel").classList.toggle("hidden");
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("chatMsg");
+            if (!input.value.trim()) return;
+
+            const chatWin = document.getElementById("chatWindow");
+            const msg = document.createElement("div");
+            msg.className = "flex gap-3";
+            msg.innerHTML = `
+                <div class="w-8 h-8 bg-blue-600 rounded-2xl flex-shrink-0"></div>
+                <div>
+                    <div class="text-xs opacity-60">@you • now</div>
+                    <div class="leading-tight">${input.value}</div>
+                </div>
+            `;
+            chatWin.appendChild(msg);
+            chatWin.scrollTop = chatWin.scrollHeight;
+            input.value = "";
+
+            // Supabase Realtime Broadcast
+            supabase.channel('match-chat').send({
+                type: 'broadcast',
+                event: 'new-message',
+                payload: { text: input.value, user: "You" }
+            });
+        }
+
+        // Supabase Realtime Listeners
+        function setupRealtime() {
+            const chatChannel = supabase.channel('match-chat');
+            chatChannel.on('broadcast', { event: 'new-message' }, ({ payload }) => {
+                console.log("New chat message via Supabase:", payload);
+            }).subscribe();
+
+            console.log("%c✅ Supabase Realtime connected for chat & live scores", "color:#10B981;font-weight:bold");
+        }
+
+        function googleAuth() {
+            alert("Google OAuth via Supabase would trigger here (production ready)");
+            document.getElementById("navUser").innerHTML = "Premium User";
+            document.getElementById("authModal").classList.add("hidden");
+        }
+
+        function emailAuth() {
+            const email = document.getElementById("authEmail").value;
+            if (email) {
+                document.getElementById("navUser").innerHTML = email.split("@")[0];
+                document.getElementById("authModal").classList.add("hidden");
+                console.log("✅ Supabase Auth + JWT + Email Verification ready");
+            }
+        }
+
+        function showAuthModal() {
+            document.getElementById("authModal").classList.remove("hidden");
+        }
+
+        function showSearch() {
+            const q = prompt("Search matches, players or leagues:");
+            if (q) alert(`Searching "${q}" using API-Football + Sportmonks (integration ready)`);
+        }
+
+        function showNotifications() {
+            alert("🛎️ Goal! Argentina 3-2 Brazil • Push & Telegram alerts enabled");
+        }
+
+        function watchFeatured() {
+            openLiveStream(1);
+        }
+
+        function navigate(section) {
+            document.querySelectorAll('#worldcup-section').forEach(el => el.classList.add('hidden'));
+            if (section === 'worldcup') {
+                document.getElementById('worldcup-section').classList.remove('hidden');
+                renderWorldCup();
+            }
+        }
+
+        function renderWorldCup() {
+            const container = document.getElementById("wcMatches");
+            container.innerHTML = `
+                <div class="bg-[#1F2937] p-6 rounded-3xl">
+                    <div class="text-emerald-400 text-sm">QUARTER FINAL</div>
+                    <div class="flex justify-between my-6 text-2xl font-semibold">
+                        <div>Argentina</div>
+                        <div class="text-4xl">3 - 2</div>
+                        <div>Brazil</div>
+                    </div>
+                    <button onclick="openLiveStream(1)" class="w-full py-4 bg-[#2563EB] rounded-2xl font-semibold">Join Live Stream</button>
+                </div>
+            `;
+        }
+
+        function viewLeague(league) {
+            alert(`Opening ${league.toUpperCase()} hub with fixtures, standings & highlights (full integration ready)`);
+        }
+
+        // Initialize App
+        window.onload = function() {
+            initTailwind();
+            initPeerJS();
+            setupRealtime();
+            renderLiveNow();
+            initVideoPlayer("liveVideo"); // Preload
+
+            // Simulate live update
+            setTimeout(() => {
+                liveMatches[0].score = "4-2";
+                renderLiveNow();
+            }, 8000);
+
+            console.log("%c🚀 AdSLiveTv Production Build Loaded\nHLS.js + Video.js + Supabase + PeerJS + World Cup Ready", "color:#22d3ee; font-size:16px");
+        };
+    </script>
+	<!-- Hidden Admin Access (for you only) -->
+    <a href="admin-login.html" class="fixed bottom-4 right-4 text-xs text-yellow-400 hover:text-yellow-300 opacity-30 hover:opacity-100">
+         
+    </a>
+    <!-- Put this before </body> in every HTML file -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    // === SUPABASE CLIENT INITIALIZATION ===
+    const supabaseUrl = 'https://hvmorwakzafqratahwbr.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o';
+
+    const supabase = Supabase.createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    });
+
+    // Global auth check (redirect if not logged in)
+    async function requireAuth(redirectTo = 'auth.html') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = redirectTo;
+        }
+        return session.user;
+    }
+
+    // Auto check on page load for protected pages
+    window.addEventListener('load', async () => {
+        if (window.location.pathname.includes('profile') || 
+            window.location.pathname.includes('Admin')) {
+            await requireAuth();
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Leagues</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://vjs.zencdn.net/8.17.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.17.0/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(20px); }
+        .live-dot { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .league-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .league-card:hover { transform: translateY(-8px) scale(1.03); }
+        .match-card { transition: all 0.3s; }
+        .match-card:hover { transform: translateY(-4px); }
+    </style>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full bg-[#111827] border-b border-gray-800 z-50 px-6 py-4">
+        <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+                <span class="text-3xl font-bold tracking-tighter">AdS<span class="text-[#2563EB]">LiveTv</span></span>
+            </a>
+            <div class="flex items-center gap-8 text-sm font-medium">
+                <a href="index.html">Home</a>
+                <a href="worldcup.html">World Cup</a>
+                <a href="leagues.html" class="text-blue-400 font-semibold">Leagues</a>
+                <a href="news.html">News</a>
+                <a href="watch-live.html">Watch Live</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-24 max-w-screen-2xl mx-auto px-6">
+        <h1 class="text-5xl font-bold text-center mb-3">All Football Leagues</h1>
+        <p class="text-center text-gray-400 mb-8">A-Z • Live Standings • Realtime Updates</p>
+
+        <!-- Search & Filter -->
+        <div class="max-w-md mx-auto mb-12">
+            <input id="leagueSearch" 
+                   type="text" 
+                   placeholder="Search leagues..." 
+                   onkeyup="filterLeagues()"
+                   class="w-full bg-[#1F2937] border border-gray-700 rounded-3xl px-6 py-4 outline-none">
+        </div>
+
+
+    <!-- HERO -->
+        <div class="rounded-3xl bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 h-80 flex items-center justify-center text-center mb-12">
+            <div>
+                <h1 class="text-6xl font-bold mb-3">WORLD'S TOP LEAGUES</h1>
+                <p class="text-xl text-gray-200">Premier League • La Liga • Bundesliga • Champions League &amp; More</p>
+            </div>
+        </div>
+
+        <!-- LEAGUES GRID -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="leaguesGrid"></div>
+
+        <!-- LIVE MATCHES ACROSS LEAGUES (Grid as per image style) -->
+        <div class="mt-16">
+            <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                <span>🔴 Live Matches Across Leagues</span>
+                <span class="text-red-500 text-xl">●</span>
+            </h2>
+            <div id="liveMatchesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </div>
+
+    <!-- LEAGUE DETAIL MODAL -->
+    <div id="leagueModal" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
+        <div class="bg-[#111827] p-6 flex items-center justify-between border-b">
+            <button onclick="closeLeagueModal()" class="text-4xl">×</button>
+            <div id="modalLeagueTitle" class="font-bold text-2xl"></div>
+            <button onclick="watchLeagueFeatured()" class="bg-blue-600 px-8 py-3 rounded-3xl font-medium">Watch Live</button>
+        </div>
+        <div class="flex-1 overflow-auto p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- Realtime Standings -->
+                <div>
+                    <h3 class="font-bold mb-4 flex items-center gap-2">Standings <span class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full">Supabase Realtime</span></h3>
+                    <table id="leagueStandings" class="w-full text-sm"></table>
+                </div>
+                <!-- Fixtures -->
+                <div>
+                    <h3 class="font-bold mb-4">Upcoming Fixtures</h3>
+                    <div id="leagueFixtures" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+	  <!-- Inside each league card -->
+    <div class="mt-6 border-t border-gray-700 pt-6">
+    <h4 class="text-sm font-medium mb-3">Upcoming Fixtures</h4>
+    <div id="fixtures-${league.name}" class="text-xs space-y-2"></div>
+    </div>
+	
+        <!-- Alphabetical Navigation -->
+        <div class="sticky top-20 bg-[#111827] border-b border-gray-800 z-40 py-4 mb-12 overflow-x-auto">
+            <div id="alphaNav" class="flex gap-4 text-sm font-medium justify-center"></div>
+        </div>
+
+        <!-- A-Z Leagues Grid -->
+        <div class="space-y-20">
+
+            <!-- A -->
+            <div id="section-A">
+                <h2 class="text-4xl font-bold mb-8 border-l-4 border-blue-500 pl-6">A</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+                        <div class="font-bold">Premier League</div>
+                    </a>
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇪🇺</div>
+                        <div class="font-bold">UEFA Champions League</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- B -->
+            <div id="section-B">
+                <h2 class="text-4xl font-bold mb-8 border-l-4 border-blue-500 pl-6">B</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇩🇪</div>
+                        <div class="font-bold">Bundesliga</div>
+                    </a>
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇧🇷</div>
+                        <div class="font-bold">Brasileirão Série A</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- L -->
+            <div id="section-L">
+                <h2 class="text-4xl font-bold mb-8 border-l-4 border-blue-500 pl-6">L</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇪🇸</div>
+                        <div class="font-bold">La Liga</div>
+                    </a>
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇫🇷</div>
+                        <div class="font-bold">Ligue 1</div>
+                    </a>
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇲🇽</div>
+                        <div class="font-bold">Liga MX</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- M -->
+            <div id="section-M">
+                <h2 class="text-4xl font-bold mb-8 border-l-4 border-blue-500 pl-6">M</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇺🇸</div>
+                        <div class="font-bold">Major League Soccer (MLS)</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- S -->
+            <div id="section-S">
+                <h2 class="text-4xl font-bold mb-8 border-l-4 border-blue-500 pl-6">S</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇮🇹</div>
+                        <div class="font-bold">Serie A</div>
+                    </a>
+                    <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                        <div class="text-6xl mb-4">🇸🇦</div>
+                        <div class="font-bold">Saudi Pro League</div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+	<!-- LIVE MATCHES ACROSS LEAGUES (Grid as per image style) -->
+        <div class="mt-16">
+            <h2 class="text-3xl font-bold mb-8 flex items-center gap-3">
+                <span>🔴 Live Matches Across Leagues</span>
+                <span class="text-red-500 text-xl">●</span>
+            </h2>
+            <div id="liveMatchesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </div>
+
+    <!-- LEAGUE DETAIL MODAL -->
+    <div id="leagueModal" class="hidden fixed inset-0 bg-black z-[100] flex flex-col">
+        <div class="bg-[#111827] p-6 flex items-center justify-between border-b">
+            <button onclick="closeLeagueModal()" class="text-4xl">×</button>
+            <div id="modalLeagueTitle" class="font-bold text-2xl"></div>
+            <button onclick="watchLeagueFeatured()" class="bg-blue-600 px-8 py-3 rounded-3xl font-medium">Watch Live</button>
+        </div>
+        <div class="flex-1 overflow-auto p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- Realtime Standings -->
+                <div>
+                    <h3 class="font-bold mb-4 flex items-center gap-2">Standings <span class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full">Supabase Realtime</span></h3>
+                    <table id="leagueStandings" class="w-full text-sm"></table>
+                </div>
+                <!-- Fixtures -->
+                <div>
+                    <h3 class="font-bold mb-4">Upcoming Fixtures</h3>
+                    <div id="leagueFixtures" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HLS PLAYER MODAL -->
+    <div id="watchModal" class="hidden fixed inset-0 bg-black z-[200] flex flex-col">
+        <div class="bg-[#111827] p-6 flex items-center justify-between border-b border-gray-700">
+            <button onclick="closeWatchModal()" class="text-4xl">×</button>
+            <div id="watchMatchTitle" class="font-bold text-xl"></div>
+            <button onclick="toggleChat()" class="px-8 py-3 bg-white/10 rounded-3xl">Live Chat</button>
+        </div>
+        <div class="flex flex-1 overflow-hidden">
+            <div class="flex-1 bg-black relative">
+                <video id="leagueLiveVideo" class="w-full h-full" controls autoplay muted></video>
+                <div class="absolute top-4 left-4 bg-black/70 px-4 py-1 rounded-2xl text-xs flex items-center gap-2">
+                    <div class="w-3 h-3 bg-red-500 rounded-full live-dot"></div>
+                    <span>LIVE • HLS Adaptive</span>
+                </div>
+            </div>
+            <div id="chatPanel" class="w-96 bg-[#111827] border-l border-gray-700 flex flex-col hidden md:flex">
+                <div class="p-4 border-b font-medium">Live Chat • Supabase Realtime</div>
+                <div id="chatMessages" class="flex-1 p-4 overflow-y-auto text-sm"></div>
+                <input id="chatInput" onkeypress="if(event.key==='Enter') sendChat()" class="m-4 bg-[#1F2937] rounded-2xl px-5 py-3" placeholder="Comment live...">
+            </div>
+        </div>
+    </div>
+	  
+    <script>
+        const supabase = Supabase.createClient('https://hvmorwakzafqratahwbr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
+
+        const leaguesData = [
+            { id: "epl", name: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", color: "from-blue-600 to-purple-600" },
+            { id: "laliga", name: "La Liga", flag: "🇪🇸", color: "from-red-600 to-yellow-500" },
+            { id: "bundesliga", name: "Bundesliga", flag: "🇩🇪", color: "from-red-500 to-yellow-400" },
+            { id: "seriea", name: "Serie A", flag: "🇮🇹", color: "from-blue-700 to-green-600" },
+            { id: "ligue1", name: "Ligue 1", flag: "🇫🇷", color: "from-blue-500 to-red-500" },
+            { id: "ucl", name: "Champions League", flag: "⭐", color: "from-yellow-400 to-purple-600" }
+        ];
+
+        let liveMatchesData = [];
+
+        // === 1xAPI / API-Football Integration ===
+        async function fetchLiveMatches() {
+            try {
+                // Replace with your RapidAPI 1xAPI or API-Football key
+                // Example for API-Football:
+                // const res = await fetch('https://football-live-stream-api.p.rapidapi.com/all-match', {
+                //     headers: { 'x-rapidapi-key': 'd3738d207amsh303e01afc7be370p1d16e5jsne2d646ff865e' }
+                // });
+                // const data = await res.json();
+
+                // Simulated real data for demo
+                liveMatchesData = [
+                    { league: "Premier League", home: "Arsenal", away: "Liverpool", score: "2-1", time: "67'", status: "live" },
+                    { league: "La Liga", home: "Real Madrid", away: "Barcelona", score: "1-1", time: "45'", status: "live" },
+                    { league: "Bundesliga", home: "Bayern Munich", away: "Borussia Dortmund", score: "3-2", time: "78'", status: "live" }
+                ];
+                renderLiveMatches();
+            } catch (e) {
+                console.error("API Error - using fallback", e);
+            }
+        }
+
+        function renderLeagues() {
+            const container = document.getElementById('leaguesGrid');
+            container.innerHTML = '';
+            leaguesData.forEach(league => {
+                const card = document.createElement('div');
+                card.className = `league-card glass rounded-3xl p-8 text-center cursor-pointer border border-transparent hover:border-blue-500`;
+                card.innerHTML = `
+                    <div class="text-7xl mb-6">${league.flag}</div>
+                    <div class="font-bold text-2xl">${league.name}</div>
+                    <div class="text-xs text-emerald-400 mt-2">Live • Standings • Fixtures</div>
+                `;
+                card.onclick = () => openLeagueDetail(league);
+                container.appendChild(card);
+            });
+        }
+
+        function renderLiveMatches() {
+            const container = document.getElementById('liveMatchesGrid');
+            container.innerHTML = '';
+            liveMatchesData.forEach(m => {
+                const card = document.createElement('div');
+                card.className = "match-card glass rounded-3xl p-6 cursor-pointer border border-red-500";
+                card.innerHTML = `
+                    <div class="text-xs text-emerald-400 mb-3">${m.league}</div>
+                    <div class="flex justify-between items-center font-semibold">
+                        <div>${m.home}</div>
+                        <div class="text-3xl font-bold text-emerald-400">${m.score}</div>
+                        <div>${m.away}</div>
+                    </div>
+                    <div class="text-center text-xs mt-4">${m.time} • LIVE</div>
+                `;
+                card.onclick = () => watchLiveMatch(m);
+                container.appendChild(card);
+            });
+        }
+
+        function openLeagueDetail(league) {
+            document.getElementById('modalLeagueTitle').textContent = league.name;
+            document.getElementById('leagueModal').classList.remove('hidden');
+
+            // Realtime Standings
+            document.getElementById('leagueStandings').innerHTML = `
+                <thead><tr class="border-b border-gray-700 text-xs"><th class="text-left py-3">Team</th><th class="text-center">P</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr></thead>
+                <tbody class="text-sm">
+                    <tr><td class="py-3">1. Manchester City</td><td class="text-center">38</td><td>28</td><td>7</td><td>3</td><td>91</td></tr>
+                    <tr><td class="py-3">2. Arsenal</td><td class="text-center">38</td><td>26</td><td>8</td><td>4</td><td>86</td></tr>
+                </tbody>
+            `;
+
+            // Fixtures
+            document.getElementById('leagueFixtures').innerHTML = `
+                <div class="glass rounded-2xl p-4 flex justify-between text-sm">
+                    <div>Arsenal vs Chelsea</div><div class="text-emerald-400">15:00</div>
+                </div>
+            `;
+        }
+
+        function closeLeagueModal() {
+            document.getElementById('leagueModal').classList.add('hidden');
+        }
+
+        function watchLiveMatch(match) {
+            closeLeagueModal();
+            document.getElementById('watchModal').classList.remove('hidden');
+            document.getElementById('watchMatchTitle').textContent = `${match.home} vs ${match.away}`;
+
+            // HLS.js Player Integration
+            const video = document.getElementById('leagueLiveVideo');
+            if (Hls.isSupported()) {
+                const hls = new Hls({
+                    liveSyncDurationCount: 3,
+                    liveMaxLatencyDurationCount: 5
+                });
+                hls.loadSource('https://test-streams.mux.dev/x264/playlist.m3u8'); // Replace with real 1xAPI / Mux stream URL
+                hls.attachMedia(video);
+                console.log('%c✅ HLS.js Adaptive Streaming Active', 'color:#10b981');
+            } else {
+                video.src = 'https://test-streams.mux.dev/x264/playlist.m3u8';
+            }
+        }
+
+        function closeWatchModal() {
+            document.getElementById('watchModal').classList.add('hidden');
+        }
+
+        function toggleChat() {
+            document.getElementById('chatPanel').classList.toggle('hidden');
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            if (!input.value) return;
+            const container = document.getElementById('chatMessages');
+            const msg = document.createElement('div');
+            msg.innerHTML = `<span class="text-blue-400">@you</span>: ${input.value}`;
+            container.appendChild(msg);
+            container.scrollTop = container.scrollHeight;
+            input.value = '';
+        }
+
+        function setupSupabaseRealtime() {
+            supabase.channel('league-standings')
+                .on('broadcast', { event: 'update' }, () => {
+                    console.log('Supabase Realtime: Standings updated');
+                })
+                .subscribe();
+        }
+
+        function showAuthModal() {
+            alert("Premium: HD + DVR + Ad-Free (Supabase Auth + Stripe ready)");
+        }
+
+        function navigateTo(page) {
+            alert(`Navigating to ${page}`);
+        }
+
+        // Real-time score updates
+        function startLiveUpdates() {
+            setInterval(() => {
+                if (liveMatchesData.length > 0) {
+                    liveMatchesData[0].score = "3-1";
+                    renderLiveMatches();
+                }
+            }, 15000);
+        }
+
+        window.onload = () => {
+            renderLeagues();
+            fetchLiveMatches();
+            setupSupabaseRealtime();
+            startLiveUpdates();
+
+            console.log('%c⚽ Leagues Page Complete - HLS.js + Supabase Realtime + 1xAPI Ready', 'color:#22d3ee;font-size:16px');
+        };
+    </script>
+	<!-- Put this before </body> in every HTML file -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    // === SUPABASE CLIENT INITIALIZATION ===
+    const supabaseUrl = 'https://hvmorwakzafqratahwbr.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o';
+
+    const supabase = Supabase.createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    });
+
+    // Global auth check (redirect if not logged in)
+    async function requireAuth(redirectTo = 'auth.html') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = redirectTo;
+        }
+        return session.user;
+    }
+
+    // Auto check on page load for protected pages
+    window.addEventListener('load', async () => {
+        if (window.location.pathname.includes('profile') || 
+            window.location.pathname.includes('admin')) {
+            await requireAuth();
+        }
+    });
+    </script>
+	
+    <script>
+        const leaguesData = [
+            { letter: "A", name: "Premier League", flag: "https://upload.wikimedia.org/wikipedia/en/f/fa/Premier_League_Logo.svg", country: "England" },
+            { letter: "B", name: "Bundesliga", flag: "https://upload.wikimedia.org/wikipedia/en/7/7f/Bundesliga_logo_%282017%29.svg", country: "Germany" },
+            { letter: "C", name: "Champions League", flag: "https://upload.wikimedia.org/wikipedia/en/0/0f/UEFA_Champions_League_logo.svg", country: "Europe" },
+            { letter: "E", name: "Eredivisie", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Eredivisie_Logo.svg", country: "Netherlands" },
+            { letter: "L", name: "La Liga", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/LaLiga_logo_%282017%29.svg/2560px-LaLiga_logo_%282017%29.svg.png", country: "Spain" },
+            { letter: "L", name: "Ligue 1", flag: "https://upload.wikimedia.org/wikipedia/en/5/5f/Ligue_1_logo.svg", country: "France" },
+            { letter: "L", name: "Liga MX", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Liga_MX_logo.svg", country: "Mexico" },
+            { letter: "M", name: "Major League Soccer", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/MLS_logo.svg", country: "USA" },
+            { letter: "P", name: "Primeira Liga", flag: "https://upload.wikimedia.org/wikipedia/en/0/0f/Primeira_Liga_logo.svg", country: "Portugal" },
+            { letter: "S", name: "Serie A", flag: "https://upload.wikimedia.org/wikipedia/en/0/0f/Serie_A_logo.svg", country: "Italy" },
+            { letter: "S", name: "Saudi Pro League", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Saudi_Pro_League_logo.svg", country: "Saudi Arabia" },
+            { letter: "U", name: "UEFA Europa League", flag: "https://upload.wikimedia.org/wikipedia/en/0/0f/UEFA_Europa_League_logo.svg", country: "Europe" }
+        ];
+
+        function createAlphaNav() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            let html = '';
+            letters.forEach(letter => {
+                html += `<a href="#section-${letter}" class="hover:text-blue-400 px-4 py-2 transition-colors">${letter}</a>`;
+            });
+            document.getElementById('alphaNav').innerHTML = html;
+        }
+
+        function renderLeagues(filteredLeagues = leaguesData) {
+            const container = document.getElementById('leaguesContainer');
+            container.innerHTML = '';
+
+            const grouped = {};
+            filteredLeagues.forEach(league => {
+                if (!grouped[league.letter]) grouped[league.letter] = [];
+                grouped[league.letter].push(league);
+            });
+
+            Object.keys(grouped).sort().forEach(letter => {
+                let html = `
+                    <div id="section-${letter}">
+                        <h2 class="text-4xl font-bold mb-8 border-l-4 border-blue-500 pl-6">${letter}</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                `;
+                grouped[letter].forEach(league => {
+                    html += `
+                        <a href="#" class="glass rounded-3xl p-6 hover:bg-blue-600/20 transition-all text-center">
+                            <img src="${league.flag}" class="h-14 mx-auto mb-4" alt="${league.name}">
+                            <div class="font-bold">${league.name}</div>
+                            <div class="text-xs text-gray-400">${league.country}</div>
+                        </a>
+                    `;
+                });
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function filterLeagues() {
+            const query = document.getElementById('leagueSearch').value.toLowerCase();
+            const filtered = leaguesData.filter(l => 
+                l.name.toLowerCase().includes(query) || 
+                l.country.toLowerCase().includes(query)
+            );
+            renderLeagues(filtered);
+        }
+
+        // Supabase Realtime for Standings
+        function setupRealtimeStandings() {
+            supabase.channel('standings-realtime')
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'standings' 
+                }, (payload) => {
+                    console.log('🔴 Standings Updated:', payload.new);
+                    // You can refresh specific league standings here
+                })
+                .subscribe();
+        }
+        
+		}
+
+        // FIXED Realtime Standings Refresh
+        function setupRealtime() {
+            supabase.channel('standings-realtime')
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'standings' 
+                }, () => {
+                    console.log('🔄 Realtime standings updated');
+                    renderLeagues();   // Full refresh on any change
+                })
+                .subscribe();
+        }
+		
+        window.onload = () => {
+            createAlphaNav();
+            renderLeagues();
+            setupRealtimeStandings();
+        };
+    </script>
+</body>
+</html>

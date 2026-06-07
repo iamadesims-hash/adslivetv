@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0A0A0A] text-white flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <div class="w-72 bg-[#111827] border-r border-gray-800 p-6 flex flex-col">
+        <div class="flex items-center gap-3 mb-12">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+            <span class="text-2xl font-bold">AdS<span class="text-blue-500">LiveTv</span></span>
+        </div>
+
+        <nav class="flex-1 space-y-1 text-sm font-medium">
+            <a href="admin.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-blue-600 text-white">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+            <a href="admin-users.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">👤 Users</a>
+            <a href="admin-matches.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">⚽ Matches</a>
+            <a href="admin-streams.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">📡 Streams</a>
+            <a href="admin-news.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">📰 News</a>
+            <a href="admin-payments.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">💰 Payments</a>
+            <a href="admin-analytics.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">📊 Analytics</a>
+			<a href="../index.html">Back to Frontend</a>
+        </nav>
+
+        <button onclick="adminLogout()" 
+                class="mt-auto flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-red-900/30 text-red-400">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div class="flex-1 overflow-auto p-8">
+        <h1 class="text-4xl font-bold mb-2">Admin Dashboard</h1>
+        <p class="text-gray-400 mb-10">Real-time Overview • Role-Based Access Control Active</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass rounded-3xl p-6">
+                <div class="text-emerald-400 text-sm">Total Revenue</div>
+                <div class="text-5xl font-bold mt-3">$428,591</div>
+                <div class="text-emerald-400 text-sm mt-4">↑ 24% this month</div>
+            </div>
+            <div class="glass rounded-3xl p-6">
+                <div class="text-blue-400 text-sm">Active Users</div>
+                <div class="text-5xl font-bold mt-3">14,872</div>
+            </div>
+            <div class="glass rounded-3xl p-6">
+                <div class="text-red-400 text-sm">Live Streams</div>
+                <div class="text-5xl font-bold mt-3">23</div>
+            </div>
+            <div class="glass rounded-3xl p-6">
+                <div class="text-yellow-400 text-sm">API Health</div>
+                <div class="text-5xl font-bold mt-3 text-emerald-400">98.7%</div>
+            </div>
+        </div>
+
+        <!-- Other Tabs (Users, Matches, etc.) are loaded via JS -->
+        <div id="tab-1" class="hidden">Users Management (RBAC Protected)</div>
+        <div id="tab-5" class="hidden">Payments & Stripe Integration</div>
+     </div>
+    </div>
+</div>
+
+<script>
+    const supabase = Supabase.createClient('https://hvmorwakzafqratahwbr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
+
+    // Role-Based Access Control
+        async function checkAdminAccess() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = "admin-login.html";
+                return;
+            }
+
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+            if (profile?.role !== 'admin') {
+                alert("Access Denied: Admin only");
+                window.location.href = "index.html";
+            }
+        }
+
+        function switchTab(n) {
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${n}`).classList.remove('hidden');
+        }
+
+        async function adminLogout() {
+            await supabase.auth.signOut();
+            window.location.href = "admin-login.html";
+        }
+
+        // Backend API Call Example (Supabase Edge Function)
+        async function callBackendAPI(endpoint) {
+            const { data } = await supabase.functions.invoke(endpoint);
+            console.log("Backend Response:", data);
+            return data;
+        }
+
+        window.onload = () => {
+            checkAdminAccess();
+            switchTab(0);
+            console.log('%c🛠️ Admin Panel Loaded with Secure RBAC + Supabase', 'color:#22d3ee');
+        };
+    </script>
+</body>
+</html>

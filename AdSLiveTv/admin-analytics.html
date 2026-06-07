@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin • Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="bg-[#0A0A0A] text-white flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <div class="w-72 bg-[#111827] border-r border-gray-800 p-6 flex flex-col">
+        <a href="admin.html" class="flex items-center gap-3 mb-12">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+            <span class="text-2xl font-bold">AdS<span class="text-blue-500">LiveTv</span></span>
+        </a>
+        <nav class="flex-1 space-y-1 text-sm">
+            <a href="admin.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Dashboard</a>
+            <a href="admin-users.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Users</a>
+            <a href="admin-analytics.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-blue-600">📊 Analytics</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto p-8">
+        <h1 class="text-4xl font-bold mb-8">Platform Analytics</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div class="glass rounded-3xl p-6">
+                <div class="text-gray-400">Total Watch Time</div>
+                <div class="text-5xl font-bold mt-3">1.24M hrs</div>
+            </div>
+            <div class="glass rounded-3xl p-6">
+                <div class="text-gray-400">Peak Viewers</div>
+                <div class="text-5xl font-bold mt-3">248K</div>
+            </div>
+            <div class="glass rounded-3xl p-6">
+                <div class="text-gray-400">Monthly Revenue</div>
+                <div class="text-5xl font-bold mt-3">$428K</div>
+            </div>
+            <div class="glass rounded-3xl p-6">
+                <div class="text-gray-400">Avg Session</div>
+                <div class="text-5xl font-bold mt-3">47 min</div>
+            </div>
+        </div>
+
+        <div class="glass rounded-3xl p-8">
+            <h3 class="font-bold text-xl mb-6">Most Watched Content</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-[#1F2937] rounded-2xl p-6 text-center">
+                    <div class="text-2xl mb-2">🇲🇽 vs 🇿🇦</div>
+                    <div class="text-emerald-400 font-bold">248K viewers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

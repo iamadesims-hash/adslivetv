@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Admin • Streams & Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(20px); }
+        .nav-active { background-color: #2563EB; color: white; }
+    </style>
+</head>
+<body class="bg-[#0A0A0A] text-white flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <div class="w-72 bg-[#111827] border-r border-gray-800 p-6 flex flex-col">
+        <div class="flex items-center gap-3 mb-12">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+            <div class="text-2xl font-bold">AdS<span class="text-blue-500">LiveTv</span></div>
+        </div>
+        <nav class="flex-1 space-y-1 text-sm">
+            <a href="#" onclick="navigateTo('dashboard')" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Dashboard</a>
+            <a href="#" onclick="navigateTo('users')" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Users</a>
+            <a href="#" onclick="navigateTo('payments')" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Payments</a>
+            <a onclick="switchTab(0)" id="tab0" class="nav-active flex items-center gap-3 px-5 py-3 rounded-2xl cursor-pointer">📡 Streams</a>
+            <a onclick="switchTab(1)" id="tab1" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800 cursor-pointer">📊 Analytics</a>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 overflow-auto">
+
+        <!-- STREAMS TAB -->
+        <div id="content-0" class="p-8">
+            <h1 class="text-4xl font-bold mb-8">Live Streams Management</h1>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Active Streams -->
+                <div class="lg:col-span-2 glass rounded-3xl p-8">
+                    <h3 class="font-bold text-xl mb-6 flex items-center gap-3">
+                        <span>Active Live Streams</span>
+                        <span class="bg-red-500 text-xs px-3 py-1 rounded-full">12 ONLINE</span>
+                    </h3>
+                    <div id="activeStreams" class="space-y-4"></div>
+                </div>
+
+                <!-- Stream Configuration -->
+                <div class="glass rounded-3xl p-8">
+                    <h3 class="font-bold text-xl mb-6">Add / Configure Stream</h3>
+                    <input id="streamTitle" placeholder="Match Title" class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+                    <input id="hlsUrl" placeholder="HLS / Mux / 1xAPI URL" class="w-full mb-6 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+                    <button onclick="publishStream()" 
+                            class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-semibold">
+                        Publish Live Stream
+                    </button>
+                    <div class="text-xs text-gray-400 mt-4 text-center">Powered by Mux + Cloudflare + 1xAPI</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS TAB -->
+        <div id="content-1" class="hidden p-8">
+            <h1 class="text-4xl font-bold mb-8">Platform Analytics</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="glass rounded-3xl p-6">
+                    <div class="text-gray-400 text-sm">Total Watch Time</div>
+                    <div class="text-5xl font-bold mt-3">1.2M hrs</div>
+                    <div class="text-emerald-400 text-sm mt-4">↑ 34% this week</div>
+                </div>
+                <div class="glass rounded-3xl p-6">
+                    <div class="text-gray-400 text-sm">Peak Concurrent Viewers</div>
+                    <div class="text-5xl font-bold mt-3">248K</div>
+                </div>
+                <div class="glass rounded-3xl p-6">
+                    <div class="text-gray-400 text-sm">Revenue This Month</div>
+                    <div class="text-5xl font-bold mt-3">$428K</div>
+                </div>
+                <div class="glass rounded-3xl p-6">
+                    <div class="text-gray-400 text-sm">Avg Session Duration</div>
+                    <div class="text-5xl font-bold mt-3">47 min</div>
+                </div>
+            </div>
+
+            <!-- Popular Matches -->
+            <div class="glass rounded-3xl p-8 mb-10">
+                <h3 class="font-bold text-xl mb-6">Most Watched Matches</h3>
+                <div id="popularMatches" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        function switchTab(n) {
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`content-${n}`).classList.remove('hidden');
+            
+            document.querySelectorAll('a[id^="tab"]').forEach(el => el.classList.remove('nav-active'));
+            document.getElementById(`tab${n}`).classList.add('nav-active');
+        }
+
+        function renderActiveStreams() {
+            const container = document.getElementById('activeStreams');
+            container.innerHTML = `
+                <div class="glass rounded-2xl p-5 flex justify-between items-center">
+                    <div>
+                        <div class="font-semibold">Mexico vs South Africa</div>
+                        <div class="text-xs text-emerald-400">Group A • 67' • 142K watching</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-emerald-400 text-sm">LIVE</div>
+                        <button onclick="stopStream(1)" class="text-red-400 text-xs mt-2">END STREAM</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPopularMatches() {
+            const container = document.getElementById('popularMatches');
+            container.innerHTML = `
+                <div class="glass rounded-3xl p-6 text-center">
+                    <div class="text-2xl">🇲🇽 vs 🇿🇦</div>
+                    <div class="text-emerald-400 font-bold">248K viewers</div>
+                </div>
+            `;
+        }
+
+        function publishStream() {
+            const title = document.getElementById('streamTitle').value;
+            const url = document.getElementById('hlsUrl').value;
+            if (url) {
+                alert(`✅ Stream "${title}" published!\nHLS URL: ${url}\nMux/1xAPI integration active`);
+            }
+        }
+
+        function stopStream(id) {
+            alert(`Stream #${id} ended successfully`);
+        }
+
+        function navigateTo(page) {
+            alert(`Navigating to ${page}...`);
+        }
+
+        // Supabase Realtime for Streams & Analytics
+        function setupRealtime() {
+            supabase.channel('streams-channel')
+                .on('broadcast', { event: 'stream-update' }, (payload) => {
+                    console.log('🔴 New stream update:', payload);
+                    renderActiveStreams();
+                })
+                .subscribe();
+
+            console.log('%c📡 Supabase Realtime active for Streams & Analytics', 'color:#10b981');
+        }
+
+        window.onload = () => {
+            switchTab(0);
+            renderActiveStreams();
+            renderPopularMatches();
+            setupRealtime();
+
+            console.log('%c📊 Streams & Analytics Admin Page Loaded', 'color:#22d3ee;font-size:16px');
+        };
+    </script>
+</body>
+</html>

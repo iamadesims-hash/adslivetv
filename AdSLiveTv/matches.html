@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Admin • Matches</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(20px); }
+        tr:hover { background-color: rgba(37, 99, 235, 0.15); }
+        .live-dot { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body class="bg-[#0A0A0A] text-white flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <div class="w-72 bg-[#111827] border-r border-gray-800 p-6 flex flex-col">
+        <div class="flex items-center gap-3 mb-12">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+            <div class="text-2xl font-bold">AdS<span class="text-blue-500">LiveTv</span></div>
+        </div>
+        <nav class="flex-1 space-y-1 text-sm">
+            <a href="#" onclick="navigateTo('dashboard')" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Dashboard</a>
+            <a href="#" onclick="navigateTo('users')" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Users</a>
+            <a href="#" onclick="navigateTo('payments')" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Payments</a>
+            <a href="#" class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-blue-600 text-white">⚽ Matches</a>
+            <a href="#" onclick="navigateTo('streams')" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">📡 Streams</a>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 overflow-auto p-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold">Matches Management</h1>
+            <div class="flex gap-4">
+                <input id="searchMatch" placeholder="Search matches..." 
+                       class="bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-3 w-80" onkeyup="filterMatches()">
+                <button onclick="addNewMatch()" 
+                        class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-2xl flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Add Match
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex gap-3 mb-6">
+            <button onclick="filterByStatus('all')" class="px-5 py-2 rounded-2xl bg-blue-600">All</button>
+            <button onclick="filterByStatus('live')" class="px-5 py-2 rounded-2xl hover:bg-gray-800">Live</button>
+            <button onclick="filterByStatus('upcoming')" class="px-5 py-2 rounded-2xl hover:bg-gray-800">Upcoming</button>
+            <button onclick="filterByStatus('finished')" class="px-5 py-2 rounded-2xl hover:bg-gray-800">Finished</button>
+        </div>
+
+        <!-- Matches Table -->
+        <div class="glass rounded-3xl overflow-hidden">
+            <table class="w-full" id="matchesTable">
+                <thead>
+                    <tr class="border-b border-gray-700 text-xs text-gray-400">
+                        <th class="text-left p-5">Match</th>
+                        <th class="text-center">League / Group</th>
+                        <th class="text-center">Time / Score</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="matchesBody" class="text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Match Modal -->
+    <div id="matchModal" class="hidden fixed inset-0 bg-black/80 z-[200] flex items-center justify-center">
+        <div class="glass max-w-lg w-full mx-4 rounded-3xl p-8">
+            <h2 class="text-2xl font-bold mb-6" id="modalTitle">Add New Match</h2>
+            
+            <input id="homeTeam" placeholder="Home Team" class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+            <input id="awayTeam" placeholder="Away Team" class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <input id="matchScore" placeholder="Score (e.g. 2-1)" class="bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+                <input id="matchTime" placeholder="Time (e.g. 67')" class="bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+            </div>
+
+            <select id="matchLeague" class="w-full mb-6 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+                <option value="World Cup 2026">FIFA World Cup 2026</option>
+                <option value="Premier League">Premier League</option>
+                <option value="La Liga">La Liga</option>
+            </select>
+
+            <div class="flex gap-4">
+                <button onclick="saveMatch()" class="flex-1 bg-blue-600 py-4 rounded-2xl font-semibold">Save Match</button>
+                <button onclick="closeMatchModal()" class="flex-1 bg-gray-700 py-4 rounded-2xl font-semibold">Cancel</button>
+            </div>
+        </div>
+    </div>
+       
+	<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script>
+        const socket = io('http://localhost:5000');
+
+           // Listen for real-time score updates
+           socket.on('score-update', (match) => {
+           console.log('Live score update received:', match);
+          // Update UI dynamically
+          updateMatchInUI(match);
+        });
+
+        function updateMatchInUI(match) {
+          // Example: Refresh table or update specific card
+          alert(`Score Updated: ${match.home} ${match.score} ${match.away}`);
+          fetchMatches(); // Refresh data
+        }
+    </script>
+	   
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        let matchesData = [
+            { id: 1, home: "Mexico", away: "South Africa", score: "2-1", time: "67'", league: "Group A", status: "live" },
+            { id: 2, home: "South Korea", away: "Czechia", score: "1-0", time: "42'", league: "Group A", status: "live" },
+            { id: 3, home: "Canada", away: "Bosnia", score: "1-1", time: "23'", league: "Group B", status: "live" },
+            { id: 4, home: "USA", away: "Paraguay", score: "FT", time: "FT", league: "Group D", status: "finished" }
+        ];
+
+        function renderMatches(filtered = matchesData) {
+            const tbody = document.getElementById('matchesBody');
+            tbody.innerHTML = '';
+            filtered.forEach(m => {
+                const row = document.createElement('tr');
+                row.className = "border-b border-gray-700 hover:bg-blue-900/10";
+                row.innerHTML = `
+                    <td class="p-5">
+                        <div class="font-medium">${m.home} vs ${m.away}</div>
+                    </td>
+                    <td class="p-5 text-center">${m.league}</td>
+                    <td class="p-5 text-center font-bold">${m.score} <span class="text-xs text-gray-400">${m.time}</span></td>
+                    <td class="p-5 text-center">
+                        <span class="px-4 py-1 text-xs rounded-full ${m.status === 'live' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'}">
+                            ${m.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="p-5 text-center">
+                        <button onclick="editMatch(${m.id})" class="text-blue-400 hover:text-blue-300 mr-4">Edit</button>
+                        <button onclick="deleteMatch(${m.id})" class="text-red-400 hover:text-red-300">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterMatches() {
+            const query = document.getElementById('searchMatch').value.toLowerCase();
+            const filtered = matchesData.filter(m => 
+                m.home.toLowerCase().includes(query) || m.away.toLowerCase().includes(query)
+            );
+            renderMatches(filtered);
+        }
+
+        function addNewMatch() {
+            document.getElementById('modalTitle').textContent = "Add New Match";
+            document.getElementById('matchModal').classList.remove('hidden');
+        }
+
+        function editMatch(id) {
+            document.getElementById('modalTitle').textContent = "Edit Match";
+            document.getElementById('matchModal').classList.remove('hidden');
+        }
+
+        function saveMatch() {
+            alert("Match saved to Supabase! (Edge Function + Realtime broadcast triggered)");
+            closeMatchModal();
+            renderMatches();
+        }
+
+        function closeMatchModal() {
+            document.getElementById('matchModal').classList.add('hidden');
+        }
+
+        function deleteMatch(id) {
+            if (confirm("Delete this match?")) {
+                alert(`Match #${id} deleted (Supabase soft delete)`);
+                renderMatches();
+            }
+        }
+
+        // Supabase Realtime for Matches
+        function setupRealtime() {
+            supabase.channel('matches-channel')
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'matches' 
+                }, (payload) => {
+                    console.log('🔴 Realtime Match Update:', payload);
+                    renderMatches();
+                })
+                .subscribe();
+
+            console.log('%c✅ Supabase Realtime active for Matches', 'color:#10b981');
+        }
+
+        function navigateTo(page) {
+            alert(`Navigating to ${page}...`);
+        }
+
+        window.onload = () => {
+            renderMatches();
+            setupRealtime();
+
+            // Simulate live score update
+            setTimeout(() => {
+                matchesData[0].score = "3-1";
+                matchesData[0].time = "72'";
+                renderMatches();
+            }, 8000);
+
+            console.log('%c⚽ Matches Management Page Loaded', 'color:#22d3ee;font-size:16px');
+        };
+    </script>
+</body>
+</html>

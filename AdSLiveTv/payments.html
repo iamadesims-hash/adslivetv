@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Billing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <nav class="fixed top-0 w-full bg-[#111827] border-b border-gray-800 z-50">
+        <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+                <span class="text-3xl font-bold tracking-tighter">AdS<span class="text-[#2563EB]">LiveTv</span></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="pt-20 max-w-4xl mx-auto px-6">
+        <h1 class="text-4xl font-bold mb-8">Billing & Payments</h1>
+
+        <!-- Current Plan -->
+        <div class="glass rounded-3xl p-8 mb-8">
+            <div class="flex justify-between items-start">
+                <div>
+                    <div class="text-emerald-400 text-sm font-medium">CURRENT PLAN</div>
+                    <div class="text-4xl font-bold mt-2">Premium Monthly</div>
+                    <div class="text-gray-400">$19.99 / month</div>
+                </div>
+                <button onclick="upgradePlan()" class="bg-emerald-600 px-8 py-3 rounded-2xl font-semibold">Upgrade to VIP</button>
+            </div>
+        </div>
+
+        <!-- Billing History -->
+        <div class="glass rounded-3xl p-8">
+            <h2 class="text-2xl font-bold mb-6">Billing History</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center bg-[#1F2937] p-5 rounded-2xl">
+                    <div>
+                        <div class="font-medium">Premium Monthly</div>
+                        <div class="text-xs text-gray-400">June 3, 2025</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-semibold">$19.99</div>
+                        <div class="text-emerald-400 text-xs">Paid via Paystack</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	   
+    <script>
+        function upgradePlan() {
+            alert("Redirecting to subscription upgrade (Stripe / Paystack checkout ready)");
+        }
+    </script>
+	<!-- Put this before </body> in every HTML file -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    // === SUPABASE CLIENT INITIALIZATION ===
+    const supabaseUrl = 'https://hvmorwakzafqratahwbr.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o';
+
+    const supabase = Supabase.createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    });
+
+    // Global auth check (redirect if not logged in)
+    async function requireAuth(redirectTo = 'auth.html') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = redirectTo;
+        }
+        return session.user;
+    }
+
+    // Auto check on page load for protected pages
+    window.addEventListener('load', async () => {
+        if (window.location.pathname.includes('profile') || 
+            window.location.pathname.includes('admin')) {
+            await requireAuth();
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • News & Updates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(20px); }
+        .news-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .news-card:hover { transform: translateY(-8px); }
+        
+        /* Smooth Page Transition */
+        .page-transition {
+            animation: fadeIn 0.4s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            transform: translateY(-100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .mobile-menu.active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full bg-[#111827] border-b border-gray-800 z-50">
+        <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+                <span class="text-3xl font-bold tracking-tighter">AdS<span class="text-[#2563EB]">LiveTv</span></span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="index.html" class="hover:text-blue-400">Home</a>
+                <a href="worldcup.html" class="hover:text-blue-400">World Cup</a>
+                <a href="leagues.html" class="hover:text-blue-400">Leagues</a>
+                <a href="news.html" class="text-blue-400 font-semibold">News</a>
+                <a href="watch-live.html" class="hover:text-blue-400">Watch Live</a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <a href="auth.html" class="hidden md:flex items-center gap-3 bg-[#1F2937] hover:bg-blue-600 px-6 py-3 rounded-3xl transition-all">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Sign In</span>
+                </a>
+
+                <!-- Hamburger -->
+                <button onclick="toggleMobileMenu()" class="md:hidden w-11 h-11 flex items-center justify-center text-3xl">
+                    <i class="fa-solid fa-bars" id="hamburger"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div id="mobileMenu" class="mobile-menu hidden md:hidden bg-[#111827] border-t border-gray-800 py-6">
+            <div class="flex flex-col gap-6 px-6 text-lg">
+                <a href="index.html" class="hover:text-blue-400">Home</a>
+                <a href="worldcup.html" class="hover:text-blue-400">World Cup 2026</a>
+                <a href="leagues.html" class="hover:text-blue-400">Leagues</a>
+                <a href="news.html" class="text-blue-400">News</a>
+                <a href="watch-live.html" class="hover:text-blue-400">Watch Live</a>
+                <a href="auth.html" class="mt-4 bg-blue-600 py-4 rounded-2xl text-center">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- LIVE SCORE TICKER -->
+    <div class="bg-[#111827] border-b border-gray-800 py-2 text-sm overflow-hidden">
+        <div id="liveTicker" class="ticker flex items-center gap-8 text-emerald-400"></div>
+    </div>
+
+    <div class="pt-20 max-w-screen-2xl mx-auto px-6 page-transition">
+
+        <!-- BREAKING NEWS HERO -->
+        <div id="breakingNews" class="rounded-3xl h-96 bg-cover bg-center relative mb-12 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 p-8 max-w-2xl">
+                <div class="inline-flex items-center gap-2 bg-red-600 px-5 py-2 rounded-3xl text-sm font-bold mb-4">
+                    <i class="fa-solid fa-bolt"></i> BREAKING
+                </div>
+                <h1 id="breakingTitle" class="text-5xl font-bold leading-tight"></h1>
+                <a href="news-article.html" class="mt-6 bg-white text-black px-8 py-4 rounded-2xl font-semibold flex items-center gap-3 inline-block">
+                    READ FULL STORY <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- CATEGORIES (Converted to Links) -->
+        <div class="flex gap-3 mb-8 overflow-x-auto pb-4">
+            <a href="news.html?category=all" class="active-cat px-6 py-3 rounded-3xl bg-blue-600 whitespace-nowrap">All News</a>
+            <a href="news.html?category=transfers" class="px-6 py-3 rounded-3xl hover:bg-gray-800 whitespace-nowrap">Transfers</a>
+            <a href="news.html?category=worldcup" class="px-6 py-3 rounded-3xl hover:bg-gray-800 whitespace-nowrap">World Cup 2026</a>
+            <a href="news.html?category=premier" class="px-6 py-3 rounded-3xl hover:bg-gray-800 whitespace-nowrap">Premier League</a>
+        </div>
+
+        <!-- NEWS GRID -->
+        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+
+
+        <!-- NEWS GRID -->
+        <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+
+    <!-- ARTICLE MODAL -->
+    <div id="articleModal" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center overflow-auto">
+        <div class="max-w-3xl w-full mx-4 bg-[#111827] rounded-3xl max-h-[90vh] overflow-auto">
+            <div class="sticky top-0 bg-[#111827] border-b border-gray-700 p-6 flex justify-between items-center">
+                <button onclick="closeArticleModal()" class="text-4xl">×</button>
+            </div>
+            <div class="p-8">
+                <img id="modalImage" class="w-full h-80 object-cover rounded-3xl mb-8">
+                <h1 id="modalTitle" class="text-4xl font-bold mb-6"></h1>
+                <div id="modalMeta" class="flex gap-6 text-sm text-gray-400 mb-10"></div>
+                <div id="modalContent" class="prose prose-invert text-gray-200 leading-relaxed"></div>
+            </div>
+        </div>
+    </div>
+	
+    <script>
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const icon = document.getElementById('hamburger');
+            menu.classList.toggle('active');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        }
+
+        // Smooth Page Transition on Load
+        window.onload = () => {
+            document.querySelectorAll('.page-transition').forEach(el => {
+                el.style.animation = 'fadeIn 0.6s ease forwards';
+            });
+            console.log('%c📰 News Page Loaded with Smooth Transitions', 'color:#22d3ee');
+        };
+    </script>
+	
+    <script>
+        // === NewsAPI Integration (Replace with your key) ===
+        const NEWSAPI_KEY = "YOUR_NEWSAPI_KEY"; // Get free key at newsapi.org
+
+        async function fetchNews() {
+            try {
+                const res = await fetch(`https://newsapi.org/v2/everything?q=soccer OR football OR "world cup" OR premier league&apiKey=${NEWSAPI_KEY}&pageSize=12`);
+                const data = await res.json();
+                return data.articles || [];
+            } catch (e) {
+                console.log("NewsAPI unavailable, using demo data");
+                return demoNews;
+            }
+        }
+
+        const demoNews = [
+            {
+                title: "Mbappé Completes Record Transfer to Real Madrid",
+                description: "The French superstar has officially joined Los Blancos in a €200M deal.",
+                urlToImage: "https://picsum.photos/id/1015/800/500",
+                publishedAt: "2025-06-04",
+                source: { name: "ESPN" }
+            },
+            {
+                title: "FIFA Confirms 48-Team Format for 2026 World Cup",
+                description: "Expanded tournament structure officially approved.",
+                urlToImage: "https://picsum.photos/id/201/800/500",
+                publishedAt: "2025-06-03",
+                source: { name: "FIFA" }
+            }
+        ];
+
+        let allNews = [];
+
+        async function loadNews() {
+            allNews = await fetchNews();
+            renderNews(allNews);
+            renderBreakingNews(allNews[0]);
+        }
+
+        function renderBreakingNews(article) {
+            if (!article) return;
+            document.getElementById('breakingNews').style.backgroundImage = `url('${article.urlToImage || "https://picsum.photos/id/1015/1200/600"}')`;
+            document.getElementById('breakingTitle').textContent = article.title;
+        }
+
+        function renderNews(newsList) {
+            const container = document.getElementById('newsGrid');
+            container.innerHTML = '';
+            newsList.forEach((news, i) => {
+                const card = document.createElement('div');
+                card.className = "news-card glass rounded-3xl overflow-hidden cursor-pointer";
+                card.innerHTML = `
+                    <img src="${news.urlToImage || 'https://picsum.photos/600/400'}" class="w-full h-52 object-cover">
+                    <div class="p-6">
+                        <div class="text-xs text-blue-400 mb-3">${news.source.name} • ${new Date(news.publishedAt).toLocaleDateString()}</div>
+                        <h3 class="font-bold text-xl leading-tight mb-3 line-clamp-2">${news.title}</h3>
+                        <p class="text-gray-400 text-sm line-clamp-3">${news.description}</p>
+                    </div>
+                `;
+                card.onclick = () => openArticle(news);
+                container.appendChild(card);
+            });
+        }
+
+        function openArticle(article) {
+            document.getElementById('modalImage').src = article.urlToImage || 'https://picsum.photos/800/500';
+            document.getElementById('modalTitle').textContent = article.title;
+            document.getElementById('modalMeta').innerHTML = `
+                <span>${article.source.name}</span>
+                <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+            `;
+            document.getElementById('modalContent').innerHTML = `<p class="text-lg">${article.description || article.content || "Full story available on original source."}</p>`;
+            document.getElementById('articleModal').classList.remove('hidden');
+        }
+
+        function closeArticleModal() {
+            document.getElementById('articleModal').classList.add('hidden');
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.active-cat').forEach(el => el.classList.remove('active-cat', 'bg-blue-600'));
+            if (cat === 'all') {
+                renderNews(allNews);
+            } else {
+                const filtered = allNews.filter(n => n.title.toLowerCase().includes(cat));
+                renderNews(filtered.length ? filtered : allNews);
+            }
+        }
+
+        // Live Score Ticker
+        function startLiveTicker() {
+            const ticker = document.getElementById('liveTicker');
+            const scores = [
+                "🇲🇽 Mexico 2-1 South Africa • 72'",
+                "🇰🇷 South Korea 1-0 Czechia • LIVE",
+                "🇨🇦 Canada 1-1 Bosnia • 45'"
+            ];
+            let i = 0;
+            setInterval(() => {
+                ticker.innerHTML = `<span class="inline-block px-8">${scores[i % scores.length]}</span>`;
+                i++;
+            }, 4000);
+        }
+
+        function showAuthModal() {
+            alert("Sign in for personalized news & push notifications");
+        }
+
+        function navigateTo(page) {
+            alert(`Navigating to ${page}...`);
+        }
+
+        window.onload = () => {
+            loadNews();
+            startLiveTicker();
+            console.log('%c📰 AdSLiveTv News Page - NewsAPI + Live Ticker Ready', 'color:#22d3ee;font-size:16px');
+        };
+    </script>
+	<!-- Put this before </body> in every HTML file -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    // === SUPABASE CLIENT INITIALIZATION ===
+    const supabaseUrl = 'https://hvmorwakzafqratahwbr.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o';
+
+    const supabase = Supabase.createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true
+        }
+    });
+
+    // Global auth check (redirect if not logged in)
+    async function requireAuth(redirectTo = 'auth.html') {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            window.location.href = redirectTo;
+        }
+        return session.user;
+    }
+
+    // Auto check on page load for protected pages
+    window.addEventListener('load', async () => {
+        if (window.location.pathname.includes('profile') || 
+            window.location.pathname.includes('admin')) {
+            await requireAuth();
+        }
+    });
+    </script>
+</body>
+</html>

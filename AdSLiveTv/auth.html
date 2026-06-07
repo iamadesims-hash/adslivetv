@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Sign In / Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(20px); }
+        .tab-active { border-bottom: 3px solid #2563EB; color: white; }
+        .strength-bar { height: 4px; transition: all 0.3s; }
+    </style>
+</head>
+<body class="bg-[#0A0A0A] text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="glass w-full max-w-md rounded-3xl overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-emerald-500 p-8 text-center">
+            <h1 class="text-3xl font-bold">AdSLiveTv</h1>
+        </div>
+
+        <div class="max-w-md w-full">
+        <div class="text-center mb-10">
+            <a href="index.html" class="inline-flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-3xl flex items-center justify-center text-4xl font-black">A</div>
+                <span class="text-4xl font-bold">AdSLiveTv</span>
+            </a>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-gray-700 mb-8">
+            <a href="#" onclick="switchTab(0)" id="tab-login" class="tab-active flex-1 py-5 text-center text-lg font-semibold">Sign In</a>
+            <a href="#" onclick="switchTab(1)" id="tab-signup" class="flex-1 py-5 text-center text-lg font-semibold text-gray-400">Create Account</a>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="loginForm">
+            <a href="login.html" onclick="signInWithGoogle()" 
+               class="block w-full py-4 bg-white text-black rounded-2xl font-medium text-center mb-6">
+                <i class="fa-brands fa-google"></i> Continue with Google
+            </a>
+
+            <div class="text-center text-gray-400 my-6">— or —</div>
+
+            <input id="loginEmail" type="email" placeholder="Email address" class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+            <input id="loginPassword" type="password" placeholder="Password" class="w-full mb-6 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+
+            <a href="profile.html" onclick="emailLogin()" class="block w-full py-4 bg-blue-600 rounded-2xl font-semibold text-center mb-6">
+                Sign In
+            </a>
+
+            <a href="forgot-password.html" class="text-blue-400 text-center block">Forgot Password?</a>
+        </div>
+
+        <!-- SIGNUP FORM -->
+        <div id="signupForm" class="hidden">
+            <input id="signupEmail" type="email" placeholder="Email address" class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+            <input id="signupPassword" type="password" placeholder="Create password" class="w-full mb-6 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+
+            <a href="register.html" onclick="emailSignUp()" class="block w-full py-4 bg-blue-600 rounded-2xl font-semibold text-center">
+                Create Account
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        function switchTab(tab) {
+            document.getElementById('loginForm').classList.toggle('hidden', tab === 1);
+            document.getElementById('signupForm').classList.toggle('hidden', tab === 0);
+        }
+
+        async function signInWithGoogle() {
+            await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/profile.html' }
+            });
+        }
+
+        async function emailLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+            else window.location.href = "profile.html";
+        }
+
+        async function emailSignUp() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const { error } = await supabase.auth.signUp({ email, password });
+            if (error) alert(error.message);
+            else alert("Account created! Please check your email.");
+        }
+
+        window.onload = () => switchTab(0);
+    </script>
+    <script>
+        const supabase = Supabase.createClient('https://hvmorwakzafqratahwbr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
+
+        function switchTab(tab) {
+            document.getElementById('loginForm').classList.toggle('hidden', tab === 1);
+            document.getElementById('signupForm').classList.toggle('hidden', tab === 0);
+            document.getElementById('tab-login').classList.toggle('tab-active', tab === 0);
+            document.getElementById('tab-signup').classList.toggle('tab-active', tab === 1);
+        }
+
+        async function signInWithGoogle() {
+            await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/profile.html' }});
+        }
+
+        async function signInWithGitHub() {
+            await supabase.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.origin + '/profile.html' }});
+        }
+
+        async function emailLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+            else window.location.href = "profile.html";
+        }
+
+        async function emailSignUp() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const { error } = await supabase.auth.signUp({ email, password });
+            if (error) alert(error.message);
+            else alert("Account created! Please check your email.");
+        }
+
+        function showForgotPassword() {
+            document.getElementById('forgotModal').classList.remove('hidden');
+        }
+
+        function closeForgotModal() {
+            document.getElementById('forgotModal').classList.add('hidden');
+        }
+
+        async function sendResetLink() {
+            const email = document.getElementById('resetEmail').value;
+            if (!email) return alert("Enter your email");
+
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/reset-password.html'
+            });
+
+            if (error) alert(error.message);
+            else {
+                alert("Password reset link sent! Check your email.");
+                closeForgotModal();
+            }
+        }
+
+        // Password Strength Checker
+        function checkPasswordStrength() {
+            const password = document.getElementById('signupPassword').value;
+            const strengthBar1 = document.getElementById('strength1');
+            const strengthBar2 = document.getElementById('strength2');
+            const strengthBar3 = document.getElementById('strength3');
+            const strengthBar4 = document.getElementById('strength4');
+            const strengthText = document.getElementById('strengthText');
+
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.length >= 8) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+            strengthBar1.style.background = strength >= 1 ? '#ef4444' : '#4b5563';
+            strengthBar2.style.background = strength >= 2 ? '#eab308' : '#4b5563';
+            strengthBar3.style.background = strength >= 3 ? '#22c55e' : '#4b5563';
+            strengthBar4.style.background = strength >= 4 ? '#22c55e' : '#4b5563';
+
+            const texts = ["Weak", "Fair", "Good", "Strong", "Very Strong"];
+            strengthText.textContent = texts[strength] || "";
+        }
+    </script>
+</body>
+</html>

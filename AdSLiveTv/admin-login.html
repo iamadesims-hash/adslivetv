@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0A0A0A] text-white min-h-screen flex items-center justify-center">
+
+    <div class="glass max-w-md w-full mx-4 rounded-3xl p-10">
+        <h1 class="text-3xl font-bold text-center mb-8">Admin Login</h1>
+        
+        <input id="adminEmail" type="email" placeholder="Admin Email" class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+        <input id="adminPassword" type="password" placeholder="Password" class="w-full mb-8 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+
+        <button onclick="adminLogin()" class="w-full py-4 bg-blue-600 rounded-2xl font-semibold">Login Securely</button>
+        
+        <p class="text-center text-xs text-gray-500 mt-6">Demo: admin@adslivetv.com / admin123</p>
+    </div>
+       
+	   <!-- Inside admin-login.html after successful login -->
+<script>
+    function adminLogin() {
+        // ... validation
+        window.location.href = "admin.html";
+    }
+</script>
+	   
+    <script>
+        const supabase = Supabase.createClient('https://hvmorwakzafqratahwbr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
+
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                alert("Invalid credentials");
+                return;
+            }
+
+            // Check if user has admin role
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', data.user.id)
+                .single();
+
+            if (profile?.role === 'admin') {
+                window.location.href = "admin.html";
+            } else {
+                alert("Access Denied: Admin privileges required");
+                await supabase.auth.signOut();
+            }
+        }
+    </script>
+</body>
+</html>

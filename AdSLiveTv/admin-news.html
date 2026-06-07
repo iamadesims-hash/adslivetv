@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin • News</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="bg-[#0A0A0A] text-white flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <div class="w-72 bg-[#111827] border-r border-gray-800 p-6 flex flex-col">
+        <a href="admin.html" class="flex items-center gap-3 mb-12">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+            <span class="text-2xl font-bold">AdS<span class="text-blue-500">LiveTv</span></span>
+        </a>
+        <nav class="flex-1 space-y-1 text-sm">
+            <a href="admin.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Dashboard</a>
+            <a href="admin-users.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Users</a>
+            <a href="admin-matches.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Matches</a>
+            <a href="admin-news.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-blue-600">📰 News</a>
+            <a href="admin-payments.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Payments</a>
+            <a href="admin-analytics.html" class="flex items-center gap-3 px-5 py-3 rounded-2xl hover:bg-gray-800">Analytics</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto p-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold">News Management</h1>
+            <button onclick="addNewArticle()" class="bg-blue-600 px-6 py-3 rounded-2xl flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> New Article
+            </button>
+        </div>
+
+        <div class="glass rounded-3xl p-6">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-700 text-xs text-gray-400">
+                        <th class="text-left p-5">Title</th>
+                        <th class="text-left">Category</th>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="newsTable" class="text-sm"></tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

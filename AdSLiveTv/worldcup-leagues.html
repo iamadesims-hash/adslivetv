@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Leagues</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+    <div class="max-w-6xl mx-auto pt-20 px-6">
+        <h1 class="text-4xl font-bold mb-10">Premier League & World Cup Groups</h1>
+
+        <!-- Group A Standings -->
+        <div class="glass rounded-3xl p-8 mb-12">
+            <h2 class="font-bold text-2xl mb-6">Group A Standings (Realtime)</h2>
+            <div id="standingsTable" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        async function loadStandings() {
+            const { data } = await supabase.from('standings').select('*');
+            document.getElementById('standingsTable').innerHTML = data.map(row => `
+                <div class="flex justify-between p-4 glass rounded-2xl">
+                    <span>${row.team}</span>
+                    <span>${row.points} pts</span>
+                </div>
+            `).join('');
+        }
+
+        // Realtime Listener
+        supabase.channel('standings-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'standings' }, loadStandings)
+            .subscribe();
+
+        window.onload = loadStandings;
+    </script>
+</body>
+</html>

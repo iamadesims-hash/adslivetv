@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="bg-[#0A0A0A] text-white min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-md w-full">
+        <!-- Logo -->
+        <div class="text-center mb-10">
+            <a href="index.html" class="inline-flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-3xl flex items-center justify-center text-4xl font-black">A</div>
+                <span class="text-4xl font-bold tracking-tighter">AdS<span class="text-[#2563EB]">LiveTv</span></span>
+            </a>
+        </div>
+
+        <div class="glass rounded-3xl p-10">
+            <h1 class="text-3xl font-bold text-center mb-8">Sign In</h1>
+
+            <!-- Google Login -->
+            <a href="#" onclick="signInWithGoogle()" 
+               class="block w-full py-4 bg-white text-black rounded-2xl font-medium text-center mb-6">
+                <i class="fa-brands fa-google"></i> Continue with Google
+            </a>
+
+            <div class="text-center text-gray-400 my-6">— or sign in with email —</div>
+
+            <!-- Email Login Form -->
+            <input id="loginEmail" type="email" placeholder="Email address" 
+                   class="w-full mb-4 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+
+            <input id="loginPassword" type="password" placeholder="Password" 
+                   class="w-full mb-6 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+
+            <a href="#" onclick="emailLogin()" 
+               class="block w-full py-4 bg-blue-600 rounded-2xl font-semibold text-center mb-6">
+                Sign In
+            </a>
+
+            <!-- Links -->
+            <div class="flex justify-between text-sm">
+                <a href="forgot-password.html" class="text-blue-400 hover:underline">Forgot Password?</a>
+                <a href="register.html" class="text-blue-400 hover:underline">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient(
+            'https://your-project.supabase.co', 
+            'your-anon-key'
+        );
+
+        async function signInWithGoogle() {
+            await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/profile.html' }
+            });
+        }
+
+        async function emailLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            if (!email || !password) {
+                alert("Please enter email and password");
+                return;
+            }
+
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+            else window.location.href = "profile.html";
+        }
+    </script>
+</body>
+</html>

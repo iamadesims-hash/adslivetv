@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+	
+	<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(20px); }
+    </style>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+     <!-- Navbar (same as other pages) -->
+    <nav class="fixed top-0 w-full bg-[#111827] border-b border-gray-800 z-50">
+        <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+                <span class="text-3xl font-bold tracking-tighter">AdS<span class="text-[#2563EB]">LiveTv</span></span>
+            </a>
+            <div class="flex items-center gap-8 text-sm font-medium">
+                <a href="index.html">Home</a>
+                <a href="worldcup.html">World Cup</a>
+                <a href="leagues.html">Leagues</a>
+                <a href="news.html">News</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto pt-20 px-6">
+        <h1 class="text-4xl font-bold mb-10">My Profile & Billing</h1>
+
+        <div class="glass rounded-3xl p-8 mb-8">
+            <div class="flex justify-between">
+                <div>
+				
+				<!-- Avatar -->
+                <div class="text-center">
+                    <div class="w-32 h-32 mx-auto bg-gradient-to-br from-blue-500 to-purple-500 rounded-3xl flex items-center justify-center text-6xl">👤</div>
+                    <h2 id="userName" class="font-bold text-2xl mt-4">Alex Rivera</h2>
+                    <p id="userEmail" class="text-gray-400">alex@example.com</p>
+                </div>
+				
+                    <h2 id="userName" class="text-3xl font-bold"></h2>
+                    <p id="userEmail" class="text-gray-400"></p>
+                </div>
+                <button onclick="signOut()" class="text-red-400">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- Subscription -->
+        <div class="glass rounded-3xl p-8 mb-8">
+            <h3 class="font-bold mb-6">Subscription</h3>
+            <button onclick="createCheckoutSession()" class="bg-emerald-600 px-8 py-4 rounded-2xl">
+                Upgrade / Manage Plan
+            </button>
+        </div>
+
+        <!-- Billing History -->
+        <div class="glass rounded-3xl p-8">
+            <h3 class="font-bold mb-6">Billing History</h3>
+            <div id="billingHistory" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+        const stripe = Stripe('pk_live_YOUR_PUBLISHABLE_KEY');
+
+        let currentUser = null;
+
+        async function loadProfile() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = "auth.html";
+                return;
+            }
+            currentUser = session.user;
+            document.getElementById('userName').textContent = currentUser.email.split('@')[0];
+            document.getElementById('userEmail').textContent = currentUser.email;
+        }
+
+        async function createCheckoutSession() {
+            const { data, error } = await supabase.functions.invoke('create-checkout', {
+                body: { priceId: 'price_1YourPriceIdHere' }
+            });
+
+            if (error) alert(error.message);
+            else stripe.redirectToCheckout({ sessionId: data.sessionId });
+        }
+
+        function generateInvoice() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("AdSLiveTv Invoice", 20, 30);
+            doc.save("invoice.pdf");
+            alert("Invoice downloaded!");
+        }
+
+        async function signOut() {
+            await supabase.auth.signOut();
+            window.location.href = "auth.html";
+        }
+
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>
