@@ -121,6 +121,56 @@
     <script>
         const supabase = Supabase.createClient('https://your-project.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
 
+		// Realtime Subscriptions
+    function setupRealtime() {
+        // Realtime Profile Updates
+        supabase.channel('profile-updates')
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'profiles',
+                filter: `id=eq.${userId}`   // Replace with current user ID
+            }, (payload) => {
+                console.log('Profile updated realtime:', payload.new);
+                updateProfileUI(payload.new);
+            })
+            .subscribe();
+
+        // Realtime Standings (for leagues)
+        supabase.channel('standings-realtime')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'standings'
+            }, () => {
+                console.log('Standings updated');
+                loadStandings();   // Refresh your UI
+            })
+            .subscribe();
+
+        // Realtime Matches
+        supabase.channel('matches-realtime')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'matches'
+            }, () => {
+                console.log('Live match updated');
+                fetchLiveMatches();
+            })
+            .subscribe();
+    }
+
+    // Example UI Update Function
+    function updateProfileUI(userData) {
+        document.getElementById('displayName').textContent = userData.full_name || "User";
+        if (userData.avatar_url) {
+            document.getElementById('userAvatar').src = userData.avatar_url;
+        }
+    }
+
+    window.onload = setupRealtime;
+		
         let matchesData = [
             { id: 1, home: "Mexico", away: "South Africa", score: "2-1", time: "67'", league: "Group A", status: "live" },
             { id: 2, home: "South Korea", away: "Czechia", score: "1-0", time: "42'", league: "Group A", status: "live" },
