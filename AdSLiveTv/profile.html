@@ -34,11 +34,40 @@
     </nav>
 
     <div class="max-w-4xl mx-auto pt-20 px-6">
-        <h1 class="text-4xl font-bold mb-10">My Profile & Billing</h1>
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-4xl font-bold">My Profile & Billing</h1>
+            <a href="index.html" class="text-blue-400 hover:underline">← Back to Home</a>
+        </div>
 
+		<!-- Login Status Card -->
+        <div id="profileCard" class="glass rounded-3xl p-8 mb-8 hidden">
+            <div class="flex items-center gap-6">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-2xl flex items-center justify-center text-5xl">
+                    👤
+                </div>
+
+                <!-- Profile Card -->
+        <div id="profileCard" class="glass rounded-3xl p-8 mb-8">
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+                <!-- Avatar -->
+                <div class="flex-shrink-0">
+                    <img id="userAvatar" src="https://via.placeholder.com/120" 
+                         class="w-28 h-28 rounded-3xl object-cover border-4 border-blue-500">
+                    <a href="#" onclick="uploadAvatar()" 
+                       class="block text-center text-xs text-blue-400 mt-3 hover:underline">
+                        Change Avatar
+                    </a>
+                </div>
+				
         <div class="glass rounded-3xl p-8 mb-8">
             <div class="flex justify-between">
                 <div>
+				<div>
+                    <h2 id="displayName" class="text-3xl font-bold"></h2>
+                    <p id="displayEmail" class="text-gray-400"></p>
+                    <p id="userRole" class="text-emerald-400 text-sm mt-1"></p>
+                </div>
+            </div>	
 				
 				<!-- Avatar -->
                 <div class="text-center">
@@ -72,7 +101,12 @@
       </div>
     </div> 
 	<div    </div>
-	 
+
+    <div class="glass rounded-2xl p-6 text-center">
+                    <div class="text-emerald-400 text-sm">Watch Time</div>
+                    <div class="font-bold text-xl mt-2">248 hrs</div>
+                </div> 
+		
     <!-- Favorite Teams Section -->
     <div class="glass rounded-3xl p-8">
     <div class="text-sm text-gray-400 mb-4">Favorite Teams</div>
@@ -88,7 +122,7 @@
     </div>
 
         <!-- Edit Profile -->
-        <a href="#" onclick="editProfile()" 
+        <a href="profile-edit.html" onclick="editProfile()" 
            class="block w-full py-4 border border-white/30 rounded-2xl hover:bg-white/10 text-center mb-8">
             Edit Profile
         </a>
@@ -103,6 +137,17 @@
         Upgrade Plan
     </a>
 </div>
+
+    <!-- Not Logged In -->
+        <div id="notLoggedIn" class="glass rounded-3xl p-12 text-center">
+            <h2 class="text-2xl font-bold mb-4">You are not signed in</h2>
+            <p class="text-gray-400 mb-8">Sign in to access your profile, subscriptions, and favorites.</p>
+            <a href="auth.html" class="inline-block bg-blue-600 px-10 py-4 rounded-2xl font-semibold">
+                Sign In Now
+            </a>
+        </div>
+    </div> 
+	
     <!-- Download Invoice -->
         <a href="#" onclick="generateInvoice()" 
            class="inline-block bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-2xl font-semibold transition-all">
@@ -132,6 +177,163 @@
             alert('Image uploaded successfully!');
         }
     }
+    </script>
+
+    <script>
+    const supabase = Supabase.createClient(
+        'https://hvmorwakzafqratahwbr.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o'
+    );
+
+		currentUser = session.user;
+
+            // Fetch profile data
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            // Display info
+            document.getElementById('displayName').textContent = profile?.full_name || currentUser.email.split('@')[0];
+            document.getElementById('displayEmail').textContent = currentUser.email;
+            document.getElementById('userRole').textContent = profile?.role === 'admin' ? 'Administrator' : 'Premium Member';
+            
+            if (profile?.avatar_url) {
+                document.getElementById('userAvatar').src = profile.avatar_url;
+            }
+            if (profile?.bio) {
+                document.getElementById('bioInput').value = profile.bio;
+            }
+        }
+
+        async function saveProfile() {
+            const bio = document.getElementById('bioInput').value;
+
+            const { error } = await supabase
+                .from('profiles')
+                .update({ bio: bio })
+                .eq('id', currentUser.id);
+
+            if (error) alert(error.message);
+            else alert("Profile updated successfully!");
+        }
+
+        async function uploadAvatar() {
+            alert("Avatar upload coming soon (Supabase Storage)");
+        }
+
+        async function signOut() {
+            await supabase.auth.signOut();
+            window.location.href = "auth.html";
+        }
+
+        // Realtime Profile Updates
+        function setupRealtime() {
+            supabase.channel('profile-changes')
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'profiles',
+                    filter: `id=eq.${currentUser?.id}`
+                }, (payload) => {
+                    console.log('Realtime profile update:', payload.new);
+                    loadProfile();
+                })
+                .subscribe();
+        }
+
+        // Initialize
+        window.onload = async () => {
+            await loadProfile();
+            setupRealtime();
+        };
+
+    // Realtime Subscriptions
+    function setupRealtime() {
+        // Realtime Profile Updates
+        supabase.channel('profile-updates')
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'profiles',
+                filter: `id=eq.${userId}`   // Replace with current user ID
+            }, (payload) => {
+                console.log('Profile updated realtime:', payload.new);
+                updateProfileUI(payload.new);
+            })
+            .subscribe();
+
+        // Realtime Standings (for leagues)
+        supabase.channel('standings-realtime')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'standings'
+            }, () => {
+                console.log('Standings updated');
+                loadStandings();   // Refresh your UI
+            })
+            .subscribe();
+
+        // Realtime Matches
+        supabase.channel('matches-realtime')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'matches'
+            }, () => {
+                console.log('Live match updated');
+                fetchLiveMatches();
+            })
+            .subscribe();
+    }
+
+    // Example UI Update Function
+    function updateProfileUI(userData) {
+        document.getElementById('displayName').textContent = userData.full_name || "User";
+        if (userData.avatar_url) {
+            document.getElementById('userAvatar').src = userData.avatar_url;
+        }
+    }
+
+    window.onload = setupRealtime;
+</script>
+	
+  <script>
+     async function loadProfile() {
+            const { data: { session } } = await supabase.auth.getSession();
+
+            const loggedInCard = document.getElementById('profileCard');
+            const notLoggedInCard = document.getElementById('notLoggedIn');
+
+            if (session) {
+                // Show profile
+                loggedInCard.classList.remove('hidden');
+                notLoggedInCard.classList.add('hidden');
+
+                document.getElementById('displayName').textContent = session.user.email.split('@')[0];
+                document.getElementById('displayEmail').textContent = session.user.email;
+                document.getElementById('userRole').textContent = "Premium Member";
+            } else {
+                // Show login prompt
+                loggedInCard.classList.add('hidden');
+                notLoggedInCard.classList.remove('hidden');
+            }
+        }
+
+        async function signOut() {
+            await supabase.auth.signOut();
+            window.location.href = "auth.html";
+        }
+
+        // Real-time auth listener
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth state changed:', event);
+            loadProfile();
+        });
+
+        window.onload = loadProfile;
     </script>
 	
 	<script>
