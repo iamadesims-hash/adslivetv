@@ -39,7 +39,7 @@
        class="tab-active flex-1 py-5 text-center text-lg font-semibold border-b-2 border-blue-500">
         Sign In
     </a>
-    <a href="login.html" id="tab-signup" 
+    <a href="register.html" id="tab-signup" 
        class="flex-1 py-5 text-center text-lg font-semibold text-gray-400">
         Create Account
     </a>
@@ -47,7 +47,7 @@
 
         <!-- LOGIN FORM -->
         <div id="loginForm">
-            <a href="register.html" onclick="signInWithGoogle()" 
+            <a href="login.html" onclick="signInWithGoogle()" 
                class="block w-full py-4 bg-white text-black rounded-2xl font-medium text-center mb-6">
                 <i class="fa-brands fa-google"></i> Continue with Google
             </a>
@@ -76,7 +76,7 @@
     </div>
 
     <script>
-        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
 
         function switchTab(tab) {
             document.getElementById('loginForm').classList.toggle('hidden', tab === 1);
