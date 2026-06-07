@@ -18,7 +18,7 @@
         <div class="glass rounded-3xl p-12">
             <h1 class="text-3xl font-bold mb-8">Continue with Google</h1>
             
-            <a href="#" onclick="signInWithGoogle()" 
+            <a href="google-login.html" onclick="signInWithGoogle()" 
                class="block w-full py-5 bg-white text-black rounded-2xl font-medium text-lg flex items-center justify-center gap-4 hover:bg-gray-100">
                 <i class="fa-brands fa-google text-2xl"></i>
                 Sign in with Google
@@ -34,7 +34,7 @@
     </div>
 
     <script>
-        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+        const supabase = Supabase.createClient('https://hvmorwakzafqratahwbr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
 
         async function signInWithGoogle() {
             const { error } = await supabase.auth.signInWithOAuth({
