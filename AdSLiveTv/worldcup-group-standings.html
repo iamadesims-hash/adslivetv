@@ -38,7 +38,7 @@
     </div>
 
     <script>
-        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+        const supabase = Supabase.createClient('https://hvmorwakzafqratahwbr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o');
 
         async function loadStandings() {
             const { data } = await supabase.from('standings').select('*').eq('group', 'A');
