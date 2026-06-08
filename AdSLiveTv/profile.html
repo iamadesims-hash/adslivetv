@@ -6,13 +6,6 @@
     <title>AdSLiveTv • Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://js.stripe.com/v3/"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(20px); }
-    </style>
 </head>
 <body class="bg-[#0A0A0A] text-white">
 
@@ -29,72 +22,43 @@
                 <a href="leagues.html">Leagues</a>
                 <a href="watch-live.html">Watch Live</a>
             </div>
-            <a href="auth.html" class="flex items-center gap-3 bg-[#1F2937] hover:bg-blue-600 px-6 py-3 rounded-3xl">
-                <i class="fa-solid fa-user"></i> Sign In
-            </a>
         </div>
     </nav>
 
     <div class="max-w-4xl mx-auto pt-24 px-6">
-        <div class="flex justify-between items-center mb-10">
-            <h1 class="text-4xl font-bold">My Profile</h1>
-            <a href="index.html" class="text-blue-400 hover:underline">← Back to Home</a>
-        </div>
+        <h1 class="text-4xl font-bold mb-10">My Profile</h1>
 
-        <!-- Profile Card -->
-        <div id="profileCard" class="glass rounded-3xl p-8 mb-8 hidden">
-            <div class="flex flex-col md:flex-row gap-8">
-                <!-- Avatar -->
-                <div class="flex-shrink-0 text-center">
-                    <img id="userAvatar" src="https://via.placeholder.com/140" 
-                         class="w-32 h-32 rounded-3xl object-cover border-4 border-blue-500 cursor-pointer mx-auto"
-                         onclick="document.getElementById('avatarInput').click()">
-                    <input type="file" id="avatarInput" class="hidden" accept="image/*" onchange="uploadAvatar()">
-                    <p class="text-blue-400 text-sm mt-3 cursor-pointer hover:underline" onclick="document.getElementById('avatarInput').click()">
-                        Change Avatar
-                    </p>
-                </div>
-
-                <!-- User Info -->
-                <div class="flex-1">
+        <!-- Profile Header -->
+        <div class="glass rounded-3xl p-8 mb-10">
+            <div class="flex flex-col md:flex-row gap-8 items-center md:items-start">
+                <img id="userAvatar" src="https://via.placeholder.com/140" 
+                     class="w-32 h-32 rounded-3xl object-cover border-4 border-blue-500">
+                <div class="flex-1 text-center md:text-left">
                     <h2 id="displayName" class="text-3xl font-bold"></h2>
                     <p id="displayEmail" class="text-gray-400"></p>
                     <p id="userRole" class="text-emerald-400 text-sm mt-1"></p>
-
-                    <div class="mt-6">
-                        <label class="text-xs text-gray-400 block mb-2">Bio</label>
-                        <textarea id="bioInput" rows="3" class="w-full bg-[#1F2937] border border-gray-700 rounded-2xl px-5 py-4"></textarea>
-                    </div>
-
-                    <button onclick="saveProfile()" 
-                            class="mt-6 px-8 py-3 bg-blue-600 rounded-2xl font-medium">
-                        Save Changes
-                    </button>
+                    <p id="displayBio" class="mt-4 text-gray-300"></p>
                 </div>
             </div>
         </div>
 
-        <!-- Not Logged In -->
-        <div id="notLoggedIn" class="glass rounded-3xl p-12 text-center hidden">
-            <h2 class="text-2xl font-bold mb-4">You are not signed in</h2>
-            <p class="text-gray-400 mb-8">Sign in to access your profile and subscriptions.</p>
-            <a href="auth.html" class="inline-block bg-blue-600 px-10 py-4 rounded-2xl font-semibold">
-                Sign In Now
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="profile-edit.html" class="glass rounded-3xl p-8 hover:bg-blue-600/10 transition-all text-center">
+                ✏️ Edit Profile
+            </a>
+            <a href="profile-favorite-teams.html" class="glass rounded-3xl p-8 hover:bg-blue-600/10 transition-all text-center">
+                ❤️ Favorite Teams
+            </a>
+            <a href="payments.html" class="glass rounded-3xl p-8 hover:bg-emerald-600/10 transition-all text-center">
+                ⭐ Manage Subscription
             </a>
         </div>
 
-        <!-- Quick Links -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <a href="profile-favorite-teams.html" class="glass rounded-3xl p-8 hover:bg-blue-600/10 text-center">
-                ❤️ Favorite Teams
-            </a>
-            <a href="payments.html" class="glass rounded-3xl p-8 hover:bg-emerald-600/10 text-center">
-                ⭐ Manage Subscription
-            </a>
-            <a href="#" onclick="signOut()" class="glass rounded-3xl p-8 text-red-400 hover:bg-red-900/20 text-center">
-                Sign Out
-            </a>
-        </div>
+        <button onclick="signOut()" 
+                class="mt-10 w-full py-4 text-red-400 hover:bg-red-900/20 rounded-2xl">
+            Sign Out
+        </button>
     </div>
 
     <script>
@@ -103,81 +67,33 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o'
         );
 
-        let currentUser = null;
-
         async function loadProfile() {
             const { data: { session } } = await supabase.auth.getSession();
-            const profileCard = document.getElementById('profileCard');
-            const notLoggedIn = document.getElementById('notLoggedIn');
-
             if (!session) {
-                profileCard.classList.add('hidden');
-                notLoggedIn.classList.remove('hidden');
+                window.location.href = "auth.html";
                 return;
             }
 
-            currentUser = session.user;
-            profileCard.classList.remove('hidden');
-            notLoggedIn.classList.add('hidden');
-
-            // Fetch profile data
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', currentUser.id)
+                .eq('id', session.user.id)
                 .single();
 
-            document.getElementById('displayName').textContent = profile?.full_name || currentUser.email.split('@')[0];
-            document.getElementById('displayEmail').textContent = currentUser.email;
+            document.getElementById('displayName').textContent = profile?.full_name || session.user.email.split('@')[0];
+            document.getElementById('displayEmail').textContent = session.user.email;
             document.getElementById('userRole').textContent = profile?.role === 'admin' ? 'Administrator' : 'Premium Member';
-
+            document.getElementById('displayBio').textContent = profile?.bio || "No bio yet.";
+            
             if (profile?.avatar_url) {
                 document.getElementById('userAvatar').src = profile.avatar_url;
             }
-        }
-
-        async function uploadAvatar() {
-            const file = document.getElementById('avatarInput').files[0];
-            if (!file || !currentUser) return;
-
-            const fileName = `${currentUser.id}-${Date.now()}-${file.name}`;
-
-            const { data, error } = await supabase.storage
-                .from('avatars')
-                .upload(fileName, file, { upsert: true });
-
-            if (error) {
-                alert("Upload failed: " + error.message);
-            } else {
-                const publicUrl = supabase.storage.from('avatars').getPublicUrl(fileName).data.publicUrl;
-                await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', currentUser.id);
-                document.getElementById('userAvatar').src = publicUrl;
-                alert("Avatar updated successfully!");
-            }
-        }
-
-        async function saveProfile() {
-            const bio = document.getElementById('bioInput').value;
-            if (!currentUser) return;
-
-            const { error } = await supabase
-                .from('profiles')
-                .update({ bio: bio })
-                .eq('id', currentUser.id);
-
-            if (error) alert(error.message);
-            else alert("Profile updated successfully!");
         }
 
         async function signOut() {
             await supabase.auth.signOut();
             window.location.href = "auth.html";
         }
-
-        // Realtime listener
-        supabase.auth.onAuthStateChange((event, session) => {
-            loadProfile();
-        });
 
         window.onload = loadProfile;
     </script>
