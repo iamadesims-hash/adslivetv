@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Live Matches</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <!-- Top Bar -->
+    <nav class="fixed top-0 w-full bg-[#111827] border-b border-gray-800 z-50 px-6 py-4">
+        <div class="max-w-screen-2xl mx-auto flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-2xl flex items-center justify-center text-3xl font-black">A</div>
+                <span class="text-3xl font-bold tracking-tighter">AdS<span class="text-[#2563EB]">LiveTv</span></span>
+            </a>
+            <div class="flex items-center gap-8 text-sm font-medium">
+                <a href="index.html">Home</a>
+                <a href="worldcup.html">World Cup</a>
+                <a href="leagues.html">Leagues</a>
+                <a href="watch-live.html" class="text-blue-400 font-semibold">Live Now</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="pt-24 max-w-screen-2xl mx-auto px-6">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold flex items-center gap-3">
+                🔴 Live Matches
+                <span id="liveCount" class="text-sm bg-red-500 px-3 py-1 rounded-full"></span>
+            </h1>
+            <button onclick="refreshMatches()" class="flex items-center gap-2 bg-[#1F2937] hover:bg-blue-600 px-6 py-3 rounded-2xl">
+                <i class="fa-solid fa-rotate"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Video Player -->
+            <div class="lg:col-span-8 bg-black rounded-3xl overflow-hidden">
+                <video id="livePlayer" class="w-full" controls autoplay muted></video>
+                <div class="p-4 bg-[#111827] flex items-center justify-between text-sm">
+                    <div id="currentMatchInfo" class="font-medium"></div>
+                    <div class="text-emerald-400">LIVE • 142K Watching</div>
+                </div>
+            </div>
+
+            <!-- Live Matches List -->
+            <div class="lg:col-span-4">
+                <div id="liveMatchesList" class="space-y-4 max-h-[70vh] overflow-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient(
+            'https://hvmorwakzafqratahwbr.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2bW9yd2FremFmcXJhdGFod2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTc0ODQsImV4cCI6MjA5NjI3MzQ4NH0.AuZGM4N4G2trCiOqvcn3Ht8u4BOommi7P7czi0fdo6o'
+        );
+
+        let currentHls = null;
+
+        // HLS Video Player
+        function playStream(hlsUrl, matchTitle) {
+            const video = document.getElementById('livePlayer');
+            document.getElementById('currentMatchInfo').textContent = matchTitle;
+
+            if (currentHls) currentHls.destroy();
+
+            if (Hls.isSupported()) {
+                currentHls = new Hls();
+                currentHls.loadSource(hlsUrl || 'https://test-streams.mux.dev/x264/playlist.m3u8');
+                currentHls.attachMedia(video);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = hlsUrl || 'https://test-streams.mux.dev/x264/playlist.m3u8';
+            }
+        }
+
+        // Fetch Live Matches from your API
+        async function fetchLiveMatches() {
+            const container = document.getElementById('liveMatchesList');
+            container.innerHTML = `<p class="text-gray-400 p-8 text-center">Loading live matches...</p>`;
+
+            try {
+                const response = await fetch('https://football-live-stream-api.p.rapidapi.com/all-match', {
+                    headers: {
+                        'x-rapidapi-host': 'football-live-stream-api.p.rapidapi.com',
+                        'x-rapidapi-key': 'd3738d207amsh303e01afc7be370p1d16e5jsne2d646ff865e'
+                    }
+                });
+
+                const data = await response.json();
+                container.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    document.getElementById('liveCount').textContent = data.length + " LIVE";
+
+                    data.forEach((match, index) => {
+                        const card = document.createElement('div');
+                        card.className = `glass rounded-3xl p-5 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all ${index === 0 ? 'ring-2 ring-blue-500' : ''}`;
+                        card.innerHTML = `
+                            <div class="flex justify-between">
+                                <div class="flex-1">
+                                    <div class="font-medium">${match.home_team || 'Home'}</div>
+                                </div>
+                                <div class="text-center font-bold text-emerald-400 px-4">
+                                    ${match.score || 'VS'}
+                                </div>
+                                <div class="flex-1 text-right">
+                                    <div class="font-medium">${match.away_team || 'Away'}</div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-3">${match.league || 'Live League'}</div>
+                        `;
+                        card.onclick = () => playStream(match.stream_url, `${match.home_team} vs ${match.away_team}`);
+                        container.appendChild(card);
+                    });
+
+                    // Auto play first match
+                    if (data[0]) {
+                        playStream(data[0].stream_url, `${data[0].home_team} vs ${data[0].away_team}`);
+                    }
+                } else {
+                    container.innerHTML = `<p class="text-gray-400 p-8 text-center">No live matches right now</p>`;
+                }
+            } catch (e) {
+                container.innerHTML = `<p class="text-red-400 p-8 text-center">Error loading matches</p>`;
+            }
+        }
+
+        // Supabase Realtime
+        function setupRealtime() {
+            supabase.channel('live-matches')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+                    fetchLiveMatches();
+                })
+                .subscribe();
+        }
+
+        // Initial Load
+        window.onload = () => {
+            fetchLiveMatches();
+            setupRealtime();
+        };
+    </script>
+</body>
+</html>
