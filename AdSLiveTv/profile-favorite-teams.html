@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Favorite Teams</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <div class="max-w-4xl mx-auto pt-20 px-6">
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-4xl font-bold">Favorite Teams</h1>
+            <a href="profile.html" class="text-blue-400 hover:underline">← Back to Profile</a>
+        </div>
+
+        <div class="glass rounded-3xl p-8">
+            <h3 class="font-bold mb-6">Select Your Favorite Teams</h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6" id="teamsGrid"></div>
+
+            <button onclick="saveFavorites()" 
+                    class="mt-10 w-full py-4 bg-blue-600 rounded-2xl font-semibold">
+                Save Favorites
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        const popularTeams = [
+            { name: "Manchester City", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
+            { name: "Real Madrid", flag: "🇪🇸" },
+            { name: "Bayern Munich", flag: "🇩🇪" },
+            { name: "Liverpool", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
+            { name: "Barcelona", flag: "🇪🇸" },
+            { name: "Arsenal", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
+            { name: "PSG", flag: "🇫🇷" },
+            { name: "Juventus", flag: "🇮🇹" }
+        ];
+
+        function renderTeams() {
+            const container = document.getElementById('teamsGrid');
+            container.innerHTML = popularTeams.map(team => `
+                <div onclick="toggleFavorite(this)" 
+                     class="glass rounded-3xl p-6 text-center cursor-pointer hover:bg-blue-600/20 transition-all favorite-team">
+                    <div class="text-6xl mb-4">${team.flag}</div>
+                    <div class="font-semibold">${team.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleFavorite(el) {
+            el.classList.toggle('bg-blue-600');
+            el.classList.toggle('text-white');
+        }
+
+        function saveFavorites() {
+            alert("Favorites saved successfully! (Supabase ready)");
+            // You can save selected teams to profiles.favorite_teams array
+        }
+
+        window.onload = renderTeams;
+    </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSLiveTv • Edit Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-[#0A0A0A] text-white">
+
+    <div class="max-w-2xl mx-auto pt-20 px-6">
+        <a href="profile.html" class="text-blue-400 mb-8 inline-block">← Back to Profile</a>
+
+        <div class="glass rounded-3xl p-10">
+            <h1 class="text-3xl font-bold mb-8">Edit Profile</h1>
+
+            <div class="flex flex-col md:flex-row gap-10">
+                <!-- Avatar Upload -->
+                <div class="text-center">
+                    <img id="avatarPreview" src="https://via.placeholder.com/140" 
+                         class="w-36 h-36 rounded-3xl object-cover mx-auto border-4 border-blue-500 cursor-pointer"
+                         onclick="document.getElementById('avatarInput').click()">
+                    <input type="file" id="avatarInput" class="hidden" accept="image/*" onchange="uploadAvatar()">
+                    <p class="text-xs text-blue-400 mt-3">Click to change avatar</p>
+                </div>
+
+                <!-- Form -->
+                <div class="flex-1">
+                    <label class="block text-sm text-gray-400 mb-2">Full Name</label>
+                    <input id="fullName" type="text" class="w-full mb-6 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4">
+
+                    <label class="block text-sm text-gray-400 mb-2">Bio</label>
+                    <textarea id="bio" rows="4" class="w-full mb-8 bg-[#1F2937] border border-gray-700 rounded-2xl px-6 py-4"></textarea>
+
+                    <button onclick="saveProfile()" 
+                            class="w-full py-4 bg-blue-600 rounded-2xl font-semibold">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        let currentUser = null;
+
+        async function loadProfile() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return window.location.href = "auth.html";
+            currentUser = session.user;
+
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+
+            if (profile) {
+                document.getElementById('fullName').value = profile.full_name || '';
+                document.getElementById('bio').value = profile.bio || '';
+                if (profile.avatar_url) {
+                    document.getElementById('avatarPreview').src = profile.avatar_url;
+                }
+            }
+        }
+
+        async function uploadAvatar() {
+            const file = document.getElementById('avatarInput').files[0];
+            if (!file) return;
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
+
+            const { data, error } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, file, { upsert: true });
+
+            if (error) {
+                alert(error.message);
+            } else {
+                const publicUrl = supabase.storage.from('avatars').getPublicUrl(fileName).data.publicUrl;
+                
+                await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', currentUser.id);
+                document.getElementById('avatarPreview').src = publicUrl;
+                alert("Avatar updated successfully!");
+            }
+        }
+
+        async function saveProfile() {
+            const fullName = document.getElementById('fullName').value;
+            const bio = document.getElementById('bio').value;
+
+            const { error } = await supabase
+                .from('profiles')
+                .update({ full_name: fullName, bio: bio })
+                .eq('id', currentUser.id);
+
+            if (error) alert(error.message);
+            else alert("Profile saved successfully!");
+        }
+
+        window.onload = loadProfile;
+    </script>
+</body>
+</html>
