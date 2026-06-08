@@ -33,7 +33,59 @@
             </div>
         </div>
 
-        <!-- Billing History -->
+		<div class="max-w-4xl mx-auto pt-20 px-6">
+        <a href="profile.html" class="text-blue-400 mb-8 inline-block">← Back to Profile</a>
+        
+        <h1 class="text-4xl font-bold mb-10">Choose Your Plan</h1>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Free Plan -->
+            <div class="glass rounded-3xl p-8 text-center">
+                <h3 class="text-xl font-bold mb-2">Free</h3>
+                <div class="text-5xl font-bold mb-6">$0<span class="text-sm font-normal">/month</span></div>
+                <ul class="text-left space-y-3 mb-10 text-gray-400">
+                    <li>✓ Limited live matches</li>
+                    <li>✓ Basic highlights</li>
+                    <li>✗ No HD streaming</li>
+                </ul>
+                <a href="#" class="block w-full py-4 border border-gray-600 rounded-2xl">Current Plan</a>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="glass rounded-3xl p-8 text-center border-2 border-emerald-500 relative">
+                <div class="absolute -top-3 right-6 bg-emerald-500 text-black text-xs px-6 py-1 rounded-full font-bold">RECOMMENDED</div>
+                <h3 class="text-xl font-bold mb-2">Premium</h3>
+                <div class="text-5xl font-bold mb-6">$9.99<span class="text-sm font-normal">/month</span></div>
+                <ul class="text-left space-y-3 mb-10">
+                    <li>✓ All live matches</li>
+                    <li>✓ HD & 4K streaming</li>
+                    <li>✓ No ads</li>
+                    <li>✓ Full tournament access</li>
+                </ul>
+                <a href="#" onclick="upgradeToPremium()" 
+                   class="block w-full py-4 bg-emerald-600 rounded-2xl font-semibold">
+                    Upgrade Now
+                </a>
+            </div>
+
+            <!-- VIP Plan -->
+            <div class="glass rounded-3xl p-8 text-center">
+                <h3 class="text-xl font-bold mb-2">VIP</h3>
+                <div class="text-5xl font-bold mb-6">$19.99<span class="text-sm font-normal">/month</span></div>
+                <ul class="text-left space-y-3 mb-10 text-gray-400">
+                    <li>✓ Everything in Premium</li>
+                    <li>✓ Priority support</li>
+                    <li>✓ Exclusive content</li>
+                </ul>
+                <a href="#" onclick="upgradeToPremium()" 
+                   class="block w-full py-4 bg-white text-black rounded-2xl font-semibold">
+                    Go VIP
+                </a>
+            </div>
+        </div>
+    </div>
+
+		<!-- Billing History -->
         <div class="glass rounded-3xl p-8">
             <h2 class="text-2xl font-bold mb-6">Billing History</h2>
             <div class="space-y-4">
@@ -50,6 +102,20 @@
             </div>
         </div>
     </div>
+		
+    <script>
+        const supabase = Supabase.createClient('https://your-project.supabase.co', 'your-anon-key');
+
+        async function upgradeToPremium() {
+            // Call your Edge Function
+            const { data, error } = await supabase.functions.invoke('create-checkout', {
+                body: { priceId: 'price_1YourPriceIdHere' }
+            });
+
+            if (error) alert(error.message);
+            else alert("Redirecting to Stripe checkout...");
+        }
+    </script>
 	   
     <script>
         function upgradePlan() {
